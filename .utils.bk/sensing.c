@@ -3,6 +3,7 @@
 #include "cmod.h"
 #include "timer.h"
 #include "oi.h"
+#include "irobserial.h"
 
 volatile uint8_t usartActive = 0;
 volatile uint8_t sensorIndex = 0;
@@ -25,7 +26,12 @@ ISR(USART_RX_vect) {
     uint8_t tmpUDR0;
     tmpUDR0 = UDR0;
     if (usartActive) {
-        sensorBuffer[sensorIndex++] = tmpUDR0;
+        if (getSerialDestination() == SERIAL_CREATE) {
+            sensorBuffer[sensorIndex++] = tmpUDR0;
+        } else {
+            sensorBuffer[sensorIndex] = sensors[sensorIndex];
+            sensorIndex++;
+        }
         if (sensorIndex >= Sen6Size) {
             usartActive = 0;
         }

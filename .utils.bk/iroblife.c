@@ -10,6 +10,7 @@
 #include "sensing.h"
 #include "irobled.h"
 #include "driving.h"
+#include "irobserial.h"
 
 void irobPeriodicImplNull(void) {
 }
@@ -23,6 +24,8 @@ void setIrobPeriodicImpl(void (*func)(void)) {
 void irobInit(void) {
     // Set up Create and module
     initializeCommandModule();
+    // Set Create as default serial destination
+    setSerialDestination(SERIAL_CREATE);
     
     // Is the Robot on
     powerOnRobot();

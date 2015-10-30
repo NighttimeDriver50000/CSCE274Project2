@@ -28,7 +28,7 @@ void irobledUpdate(void) {
 }
 
 void irobledInit(void) {
-    irobledCmd(NEITHER_ROBOT_LED, POWER_LED_RED, 0xFF);
+    irobledCmd(NEITHER_ROBOT_LED, POWER_LED_ORANGE, 0xFF);
 }
 
 void powerLedSet(uint8_t color, uint8_t intensity) {
