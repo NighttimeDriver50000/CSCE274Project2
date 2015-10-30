@@ -21,14 +21,6 @@ uint8_t read1ByteSensorPacket(uint8_t packetId) {
     return byteRx();
 }
 
-void setupSensing(void) {
-    cli();
-    UBRR0 = 19;
-    UCSR0B = (_BV(RXCIE0) | _BV(TXEN0) | _BV(RXEN0));
-    UCSR0C = (_BV(UCSZ00) | _BV(UCSZ01));
-    sei();
-}
-
 ISR(USART_RX_vect) {
     uint8_t tmpUDR0;
     tmpUDR0 = UDR0;

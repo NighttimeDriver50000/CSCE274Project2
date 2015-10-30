@@ -23,9 +23,7 @@ void setIrobPeriodicImpl(void (*func)(void)) {
 void irobInit(void) {
     // Set up Create and module
     initializeCommandModule();
-    // Set up USART-based sensing
-    setupSensing();
-
+    
     // Is the Robot on
     powerOnRobot();
     // Start the create
