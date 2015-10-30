@@ -1,4 +1,0 @@
-#!/bin/bash
-
-echo "$(dirname "$0")/ice" -Tj "$1" "@$1/.iced-profile" make clean
-"$(dirname "$0")/ice" -Tj "$1" "@$1/.iced-profile" make clean
