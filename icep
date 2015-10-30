@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo "$(dirname "$0")/ice" -Tj "$1" "@$1/.iced-profile" build -p
+"$(dirname "$0")/ice" -Tj "$1" "@$1/.iced-profile" build -p
