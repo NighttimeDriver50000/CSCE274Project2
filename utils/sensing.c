@@ -66,10 +66,10 @@ int8_t getSensorInt8(uint8_t index) {
 }
 
 uint16_t getSensorUint16(uint8_t index1) {
-    return (sensor[index1] << 8) | sensor[index1 + 1];
+    return (sensors[index1] << 8) | sensors[index1 + 1];
 }
 
 int16_t getSensorInt16(uint8_t index1) {
     uint16_t x = getSensorUint16(index1);
-    return x < (1 << 15) ? x : x - (1 << 16);
+    return x < 0x8000 ? x : x - 0x10000;
 }
