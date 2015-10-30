@@ -55,3 +55,21 @@ void updateSensors(void) {
 void delayAndUpdateSensors(uint32_t time_ms) {
     delayMsFunc(time_ms, &updateSensors, 1, UPDATE_SENSOR_DELAY_CUTOFF);
 }
+
+uint8_t getSensorUint8(uint8_t index) {
+    return sensors[index];
+}
+
+int8_t getSensorInt8(uint8_t index) {
+    uint8_t x = getSensorUint8(index);
+    return x < (1 << 7) ? x : x - (1 << 8);
+}
+
+uint16_t getSensorUint16(uint8_t index1) {
+    return (sensor[index1] << 8) | sensor[index1 + 1];
+}
+
+int16_t getSensorInt16(uint8_t index1) {
+    uint16_t x = getSensorUint16(index1);
+    return x < (1 << 15) ? x : x - (1 << 16);
+}

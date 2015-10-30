@@ -57,4 +57,12 @@ void updateSensors(void);
 
 void delayAndUpdateSensors(uint32_t time_ms);
 
+uint8_t getSensorUint8(uint8_t index);
+
+int8_t getSensorInt8(uint8_t index);
+
+uint16_t getSensorUint16(uint8_t index1);
+
+int16_t getSensorInt16(uint8_t index1);
+
 #endif
