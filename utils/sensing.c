@@ -32,7 +32,7 @@ ISR(USART_RX_vect) {
     }
 }
 
-void updateSensors() {
+void updateSensors(void) {
     if (!usartActive) {
         uint8_t i;
         for (i = 0; i < Sen6Size; i++) {

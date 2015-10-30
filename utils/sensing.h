@@ -51,8 +51,8 @@ void requestPacket(uint8_t packetId);
  */
 uint8_t read1ByteSensorPacket(uint8_t packetId);
 
-void updateSensors();
+void updateSensors(void);
 
-void delayAndUpdateSensors();
+void delayAndUpdateSensors(uint32_t time_ms);
 
 #endif

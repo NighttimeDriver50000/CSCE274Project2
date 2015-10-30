@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define UPDATE_SENSOR_DELAY_CUTOFF      (10)
+
+
 #define PACKET_BUMPS_AND_WHEEL_DROPS    (7)
 #define MASK_WHEEL_DROP_CASTER          (1 << 4)
 #define MASK_WHEEL_DROP_LEFT            (1 << 3)
@@ -16,8 +19,16 @@
 #define MASK_BTN_ADVANCE                (1 << 2)
 #define MASK_BTN_PLAY                   (1 << 0)
 
+#define PACKET_ALL                      (6)
+
+void requestPacket(uint8_t packetId);
+
 //! Read in a 1-byte sensor packet.
 /*!
+ *  \deprecated {
+ *      This uses the old, non-USART-based way of retrieving sensor data.
+ *  }
+ *  
  *  What is a sensor packet? A byte (or bytes) containing data from a set of
  *  sensors, often shifted and ORed together. See the Create Open Interface
  *  documentation for more.
@@ -39,5 +50,9 @@
  *                      Create Open Interface.
  */
 uint8_t read1ByteSensorPacket(uint8_t packetId);
+
+void updateSensors(void);
+
+void delayAndUpdateSensors(uint32_t time_ms);
 
 #endif

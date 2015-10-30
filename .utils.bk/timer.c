@@ -7,14 +7,15 @@ volatile uint32_t delayTimerCount = 0;   // Definition checked against declarati
 volatile uint8_t  delayTimerRunning = 0; // Definition checked against declaration
 
 
-ISR(USART_RX_vect) {  //SIGNAL(SIG_USART_RECV) 
+// Chris -- moved to sensing.c
+/*ISR(USART_RX_vect) {  //SIGNAL(SIG_USART_RECV) 
     // Serial receive interrupt to store sensor values
 
     // CSCE 274 students, I have only ever used this method 
     // when retrieving/storing a large amount of sensor data. 
     // You DO NOT need it for this assignment. If i feel it 
     // becomes relevant, I will show you how/when to use it.
-}
+}*/
 
 //SIGNAL(SIG_OUTPUT_COMPARE1A)
 ISR(TIMER1_COMPA_vect) {
