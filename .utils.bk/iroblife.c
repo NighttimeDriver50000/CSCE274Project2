@@ -7,6 +7,7 @@
 #include "iroblib.h"
 #include "oi.h"
 
+#include "sensing.h"
 #include "irobled.h"
 #include "driving.h"
 
@@ -22,6 +23,8 @@ void setIrobPeriodicImpl(void (*func)(void)) {
 void irobInit(void) {
     // Set up Create and module
     initializeCommandModule();
+    // Set up USART-based sensing
+    setupSensing();
 
     // Is the Robot on
     powerOnRobot();
