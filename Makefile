@@ -60,7 +60,7 @@ TARGET = proj2a
 
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = proj2a.c utils/irobserial.c utils/driving.c utils/iroblib.c utils/irobled.c utils/timer.c utils/cmod.c utils/sensing.c utils/iroblife.c
+SRC = lib2a.c proj2a.c utils/irobserial.c utils/driving.c utils/iroblib.c utils/irobled.c utils/timer.c utils/cmod.c utils/sensing.c utils/iroblife.c
 
 
 # List Assembler source files here.
