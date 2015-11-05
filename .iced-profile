@@ -1,7 +1,6 @@
 -t
 proj2a
---nds
 -S
 ./*2a.c
 ./utils/*.c
---
+--nds
