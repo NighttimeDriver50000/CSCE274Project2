@@ -1,3 +1,4 @@
+#include "lib2a.h"
 #include "irobserial.h"
 #include "sensing.h"
 #include "oi.h"
