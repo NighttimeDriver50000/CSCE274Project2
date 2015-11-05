@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#define UPDATE_SENSOR_DELAY_PERIOD      (1)
 #define UPDATE_SENSOR_DELAY_CUTOFF      (10)
 
 
@@ -19,12 +20,18 @@
 #define MASK_BTN_ADVANCE                (1 << 2)
 #define MASK_BTN_PLAY                   (1 << 0)
 
-#define IR_LEFT    (129)
-#define IR_FORWARD (130)
-#define IR_RIGHT   (131)
+#define IR_LEFT                         (129)
+#define IR_FORWARD                      (130)
+#define IR_RIGHT                        (131)
 
 #define PACKET_ALL                      (6)
 
+//! Request a sensor packet. \see read1ByteSensorPacket(uint8_t)
+/*!
+ *  \deprecated {
+ *      This uses the old, non-USART-based way of retrieving sensor data.
+ *  }
+ */
 void requestPacket(uint8_t packetId);
 
 //! Read in a 1-byte sensor packet.
@@ -55,18 +62,27 @@ void requestPacket(uint8_t packetId);
  */
 uint8_t read1ByteSensorPacket(uint8_t packetId);
 
+//! Request all packets (will be retrieved by USART)
 void updateSensors(void);
 
+//! Wait for all packets to be recieved by USART
 void waitForSensors(void);
 
+//! delayMs that updates sensors
 void delayAndUpdateSensors(uint32_t time_ms);
 
+//! Get an unsigned 1-byte sensor value
 uint8_t getSensorUint8(uint8_t index);
 
+//! Get a signed 1-byte sensor value
 int8_t getSensorInt8(uint8_t index);
 
+//! Get an unsigned 2-byte sensor value, indexed by the more significant
+//! (lower index) byte
 uint16_t getSensorUint16(uint8_t index1);
 
+//! Get a signed 2-byte sensor value, indexed by the more significant
+//! (lower index) byte
 int16_t getSensorInt16(uint8_t index1);
 
 #endif

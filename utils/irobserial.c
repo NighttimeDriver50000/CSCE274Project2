@@ -34,7 +34,9 @@ uint8_t getSerialDestination(void) {
 
 void irobprint(char* str) {
     char c;
+    // Null-terminated string
     while ((c = *(str++)) != '\0') {
+        // Print each byte
         byteTx(c);
     }
 }
@@ -45,17 +47,22 @@ void irobprintf(const char* format, ...) {
     char* fp = &printfBuffer[0];
     va_list ap;
     va_start(ap, format);
+    // Format the string
     vsnprintf(fp, PRINTF_BUFFER_SIZE, format, ap);
     va_end(ap);
+    // Print the string
     irobprint(fp);
 }
 
 void irobnprintf(uint16_t size, const char* format, ...) {
+    // Create a buffer
     char formatted[size];
     char* fp = &formatted[0];
     va_list ap;
     va_start(ap, format);
+    // Format the string
     vsnprintf(fp, size, format, ap);
     va_end(ap);
+    // Print the string
     irobprint(fp);
 }

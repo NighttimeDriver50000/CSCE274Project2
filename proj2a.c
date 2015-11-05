@@ -13,7 +13,9 @@
 
 // Called by irobPeriodic
 void iroblifePeriodic(void) {
+    // Switch output to USB
     setSerialDestination(SERIAL_USB);
+    // Output sensor values
     irobprintf("Charging State: %d\n", getSensorUint8(SenChargeState));
     irobprintf("Voltage: %d\n", getSensorUint16(SenVolt1));
     irobprintf("Current: %d\n", getSensorInt16(SenCurr1));
@@ -25,7 +27,9 @@ void iroblifePeriodic(void) {
     irobprintf("Cliff Front Left Signal: %d\n", getSensorUint16(SenCliffFLSig1));
     irobprintf("Cliff Front Right Signal: %d\n", getSensorUint16(SenCliffFRSig1));
     irobprintf("Cliff Right Signal: %d\n", getSensorUint16(SenCliffRSig1));
+    // Spacing
     byteTx('\n');
+    // Switch output back to Create for updating sensor values
     setSerialDestination(SERIAL_CREATE);
 }
 
@@ -42,7 +46,7 @@ int main(void) {
         // Periodic execution
         irobPeriodic();
        
-        // Delay for the loop
+        // Delay for the loop; one second
         delayAndUpdateSensors(IROB_PERIOD_MS);
     }
 }
