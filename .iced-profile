@@ -1,0 +1,7 @@
+-t
+proj2a
+--nds
+-S
+./proj2a.c
+./utils/*.c
+--
