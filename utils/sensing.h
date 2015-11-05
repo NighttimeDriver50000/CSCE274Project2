@@ -19,6 +19,10 @@
 #define MASK_BTN_ADVANCE                (1 << 2)
 #define MASK_BTN_PLAY                   (1 << 0)
 
+#define IR_LEFT    (129)
+#define IR_FORWARD (130)
+#define IR_RIGHT   (131)
+
 #define PACKET_ALL                      (6)
 
 void requestPacket(uint8_t packetId);
@@ -52,6 +56,8 @@ void requestPacket(uint8_t packetId);
 uint8_t read1ByteSensorPacket(uint8_t packetId);
 
 void updateSensors(void);
+
+void waitForSensors(void);
 
 void delayAndUpdateSensors(uint32_t time_ms);
 

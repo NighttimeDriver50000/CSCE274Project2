@@ -50,6 +50,10 @@ void updateSensors(void) {
     }
 }
 
+void waitForSensors(void) {
+    while(usartActive);
+}
+
 void delayAndUpdateSensors(uint32_t time_ms) {
     delayMsFunc(time_ms, &updateSensors, 1, UPDATE_SENSOR_DELAY_CUTOFF);
 }
