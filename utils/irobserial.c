@@ -32,6 +32,24 @@ uint8_t getSerialDestination(void) {
    return serialDestination; 
 }
 
+void irobprint(char* str) {
+    char c;
+    while ((c = *(str++)) != '\0') {
+        byteTx(c);
+    }
+}
+
+char printfBuffer[PRINTF_BUFFER_SIZE];
+
+void irobprintf(const char* format, ...) {
+    char* fp = &printfBuffer[0];
+    va_list ap;
+    va_start(ap, format);
+    vsnprintf(fp, PRINTF_BUFFER_SIZE, format, ap);
+    va_end(ap);
+    irobprint(fp);
+}
+
 void irobnprintf(uint16_t size, const char* format, ...) {
     char formatted[size];
     char* fp = &formatted[0];
@@ -39,8 +57,5 @@ void irobnprintf(uint16_t size, const char* format, ...) {
     va_start(ap, format);
     vsnprintf(fp, size, format, ap);
     va_end(ap);
-    char c;
-    while ((c = *(fp++)) != '\0') {
-        byteTx(c);
-    }
+    irobprint(fp);
 }
