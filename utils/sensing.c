@@ -54,8 +54,9 @@ ISR(USART_RX_vect) {
 }
 
 void updateSensors(void) {
-    // Don't do anything if sensors are still coming in
-    if (!(usartStatus & USART_ACTIVE)) {
+    // Don't do anything if sensors are still coming in or output is not create
+    if (!(usartStatus & USART_ACTIVE)
+            && getSerialDestination() == SERIAL_CREATE) {
         // Don't copy if data invalid
         if (usartStatus & USART_VALID) {
             uint8_t i;
