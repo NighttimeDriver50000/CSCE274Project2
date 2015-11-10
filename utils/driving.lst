@@ -1,0 +1,395 @@
+   1               		.file	"driving.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+ 104               	.global	drive
+ 106               	drive:
+   1:utils/driving.c **** #include <stdint.h>
+   2:utils/driving.c **** #include "driving.h"
+   3:utils/driving.c **** #include "oi.h"
+   4:utils/driving.c **** #include "cmod.h"
+   5:utils/driving.c **** #include "timer.h"
+   6:utils/driving.c **** 
+   7:utils/driving.c **** // Weird constants because squeezing out precision
+   8:utils/driving.c **** #define PIe5            314159
+   9:utils/driving.c **** #define TENTH_RADIUS    13
+  10:utils/driving.c **** 
+  11:utils/driving.c **** // # BASIC COMMANDS #
+  12:utils/driving.c **** 
+  13:utils/driving.c **** void drive(int16_t velocity, int16_t radius) {
+ 108               	.LM0:
+ 109               	.LFBB1:
+ 110 0000 1F93      		push r17
+ 111 0002 CF93      		push r28
+ 112 0004 DF93      		push r29
+ 113 0006 00D0      		rcall .
+ 114 0008 1F92      		push __zero_reg__
+ 115 000a CDB7      		in r28,__SP_L__
+ 116 000c DEB7      		in r29,__SP_H__
+ 117               	/* prologue: function */
+ 118               	/* frame size = 3 */
+ 119               	/* stack size = 6 */
+ 120               	.L__stack_usage = 6
+ 121 000e 182F      		mov r17,r24
+  14:utils/driving.c ****     // Send the start driving command to the Create
+  15:utils/driving.c ****     byteTx(CmdDrive);
+ 123               	.LM1:
+ 124 0010 89E8      		ldi r24,lo8(-119)
+ 125 0012 6B83      		std Y+3,r22
+ 126 0014 7A83      		std Y+2,r23
+ 127 0016 9983      		std Y+1,r25
+ 128 0018 0E94 0000 		call byteTx
+  16:utils/driving.c ****     byteTx((uint8_t)((velocity >> 8) & 0x00FF));
+ 130               	.LM2:
+ 131 001c 9981      		ldd r25,Y+1
+ 132 001e 892F      		mov r24,r25
+ 133 0020 0E94 0000 		call byteTx
+  17:utils/driving.c ****     byteTx((uint8_t)(velocity & 0x00FF));
+ 135               	.LM3:
+ 136 0024 812F      		mov r24,r17
+ 137 0026 0E94 0000 		call byteTx
+  18:utils/driving.c ****     byteTx((uint8_t)((radius >> 8) & 0x00FF));
+ 139               	.LM4:
+ 140 002a 7A81      		ldd r23,Y+2
+ 141 002c 872F      		mov r24,r23
+ 142 002e 0E94 0000 		call byteTx
+  19:utils/driving.c ****     byteTx((uint8_t)(radius & 0x00FF));
+ 144               	.LM5:
+ 145 0032 6B81      		ldd r22,Y+3
+ 146 0034 862F      		mov r24,r22
+ 147               	/* epilogue start */
+  20:utils/driving.c **** }
+ 149               	.LM6:
+ 150 0036 0F90      		pop __tmp_reg__
+ 151 0038 0F90      		pop __tmp_reg__
+ 152 003a 0F90      		pop __tmp_reg__
+ 153 003c DF91      		pop r29
+ 154 003e CF91      		pop r28
+ 155 0040 1F91      		pop r17
+  19:utils/driving.c ****     byteTx((uint8_t)(radius & 0x00FF));
+ 157               	.LM7:
+ 158 0042 0C94 0000 		jmp byteTx
+ 160               	.Lscope1:
+ 162               	.global	driveStop
+ 164               	driveStop:
+  21:utils/driving.c **** 
+  22:utils/driving.c **** void driveStop(void) {
+ 166               	.LM8:
+ 167               	.LFBB2:
+ 168               	/* prologue: function */
+ 169               	/* frame size = 0 */
+ 170               	/* stack size = 0 */
+ 171               	.L__stack_usage = 0
+  23:utils/driving.c ****     drive(0, RadStraight);
+ 173               	.LM9:
+ 174 0046 60E0      		ldi r22,0
+ 175 0048 70E8      		ldi r23,lo8(-128)
+ 176 004a 80E0      		ldi r24,0
+ 177 004c 90E0      		ldi r25,0
+ 178 004e 0C94 0000 		jmp drive
+ 180               	.Lscope2:
+ 183               	.global	driveDistanceOp
+ 185               	driveDistanceOp:
+  24:utils/driving.c **** }
+  25:utils/driving.c **** 
+  26:utils/driving.c **** 
+  27:utils/driving.c **** // # OPCODE-BASED COMMANDS #
+  28:utils/driving.c **** 
+  29:utils/driving.c **** void driveDistanceOp(int16_t velocity, int16_t distance) {
+ 187               	.LM10:
+ 188               	.LFBB3:
+ 189 0052 CF93      		push r28
+ 190 0054 DF93      		push r29
+ 191               	/* prologue: function */
+ 192               	/* frame size = 0 */
+ 193               	/* stack size = 2 */
+ 194               	.L__stack_usage = 2
+ 195 0056 EB01      		movw r28,r22
+  30:utils/driving.c ****     // Start driving
+  31:utils/driving.c ****     drive(velocity, RadStraight);
+ 197               	.LM11:
+ 198 0058 60E0      		ldi r22,0
+ 199 005a 70E8      		ldi r23,lo8(-128)
+ 200 005c 0E94 0000 		call drive
+  32:utils/driving.c ****     // Halt execution of new commands on the Create until reached distance
+  33:utils/driving.c ****     byteTx(WaitForDistance);
+ 202               	.LM12:
+ 203 0060 8CE9      		ldi r24,lo8(-100)
+ 204 0062 0E94 0000 		call byteTx
+  34:utils/driving.c ****     byteTx((uint8_t)((distance >> 8) & 0x00FF));
+ 206               	.LM13:
+ 207 0066 8D2F      		mov r24,r29
+ 208 0068 0E94 0000 		call byteTx
+  35:utils/driving.c ****     byteTx((uint8_t)(distance & 0x00FF));
+ 210               	.LM14:
+ 211 006c 8C2F      		mov r24,r28
+ 212 006e 0E94 0000 		call byteTx
+ 213               	/* epilogue start */
+  36:utils/driving.c ****     // Stop the Create
+  37:utils/driving.c ****     driveStop();
+  38:utils/driving.c **** }
+ 215               	.LM15:
+ 216 0072 DF91      		pop r29
+ 217 0074 CF91      		pop r28
+  37:utils/driving.c ****     driveStop();
+ 219               	.LM16:
+ 220 0076 0C94 0000 		jmp driveStop
+ 222               	.Lscope3:
+ 227               	.global	driveAngleOp
+ 229               	driveAngleOp:
+  39:utils/driving.c **** 
+  40:utils/driving.c **** void driveAngleOp(int16_t velocity, int16_t radius, int16_t angle) {
+ 231               	.LM17:
+ 232               	.LFBB4:
+ 233 007a CF93      		push r28
+ 234 007c DF93      		push r29
+ 235               	/* prologue: function */
+ 236               	/* frame size = 0 */
+ 237               	/* stack size = 2 */
+ 238               	.L__stack_usage = 2
+ 239 007e EA01      		movw r28,r20
+  41:utils/driving.c ****     // Wait for angle opcode compatibility
+  42:utils/driving.c ****     if (radius == RadCW) {
+ 241               	.LM18:
+ 242 0080 6F3F      		cpi r22,-1
+ 243 0082 2FEF      		ldi r18,-1
+ 244 0084 7207      		cpc r23,r18
+ 245 0086 01F4      		brne .L5
+  43:utils/driving.c ****         angle = -angle;
+ 247               	.LM19:
+ 248 0088 D195      		neg r29
+ 249 008a C195      		neg r28
+ 250 008c D109      		sbc r29,__zero_reg__
+ 251               	.L5:
+  44:utils/driving.c ****     }
+  45:utils/driving.c ****     // Start driving
+  46:utils/driving.c ****     drive(velocity, radius);
+ 253               	.LM20:
+ 254 008e 0E94 0000 		call drive
+  47:utils/driving.c ****     // Halt execution of new commands on the Create until reached angle
+  48:utils/driving.c ****     byteTx(WaitForAngle);
+ 256               	.LM21:
+ 257 0092 8DE9      		ldi r24,lo8(-99)
+ 258 0094 0E94 0000 		call byteTx
+  49:utils/driving.c ****     byteTx((uint8_t)((angle >> 8) & 0x00FF));
+ 260               	.LM22:
+ 261 0098 8D2F      		mov r24,r29
+ 262 009a 0E94 0000 		call byteTx
+  50:utils/driving.c ****     byteTx((uint8_t)(angle & 0x00FF));
+ 264               	.LM23:
+ 265 009e 8C2F      		mov r24,r28
+ 266 00a0 0E94 0000 		call byteTx
+ 267               	/* epilogue start */
+  51:utils/driving.c ****     // Stop the Create
+  52:utils/driving.c ****     driveStop();
+  53:utils/driving.c **** }
+ 269               	.LM24:
+ 270 00a4 DF91      		pop r29
+ 271 00a6 CF91      		pop r28
+  52:utils/driving.c ****     driveStop();
+ 273               	.LM25:
+ 274 00a8 0C94 0000 		jmp driveStop
+ 276               	.Lscope4:
+ 283               	.global	driveDistanceTFunc
+ 285               	driveDistanceTFunc:
+  54:utils/driving.c **** 
+  55:utils/driving.c **** 
+  56:utils/driving.c **** // # TIMER-BASED COMMANDS #
+  57:utils/driving.c **** 
+  58:utils/driving.c **** void driveDistanceTFunc(int16_t velocity, int16_t distance, void (*func)(void),
+  59:utils/driving.c ****         uint16_t period_ms, uint16_t cutoff_ms) {
+ 287               	.LM26:
+ 288               	.LFBB5:
+ 289 00ac 8F92      		push r8
+ 290 00ae 9F92      		push r9
+ 291 00b0 AF92      		push r10
+ 292 00b2 BF92      		push r11
+ 293 00b4 CF92      		push r12
+ 294 00b6 DF92      		push r13
+ 295 00b8 EF92      		push r14
+ 296 00ba FF92      		push r15
+ 297 00bc 0F93      		push r16
+ 298 00be 1F93      		push r17
+ 299 00c0 CF93      		push r28
+ 300 00c2 DF93      		push r29
+ 301               	/* prologue: function */
+ 302               	/* frame size = 0 */
+ 303               	/* stack size = 12 */
+ 304               	.L__stack_usage = 12
+ 305 00c4 EC01      		movw r28,r24
+ 306 00c6 7A01      		movw r14,r20
+ 307 00c8 6901      		movw r12,r18
+  60:utils/driving.c ****     // Calculate the delay
+  61:utils/driving.c ****     uint32_t time_ms = (1000 * (uint32_t)distance) / (uint32_t)velocity;
+ 309               	.LM27:
+ 310 00ca 28EE      		ldi r18,lo8(-24)
+ 311 00cc 33E0      		ldi r19,lo8(3)
+ 312 00ce DB01      		movw r26,r22
+ 313 00d0 0E94 0000 		call __usmulhisi3
+ 314 00d4 9E01      		movw r18,r28
+ 315 00d6 4427      		clr r20
+ 316 00d8 37FD      		sbrc r19,7
+ 317 00da 4095      		com r20
+ 318 00dc 542F      		mov r21,r20
+ 319 00de 0E94 0000 		call __udivmodsi4
+ 320 00e2 4901      		movw r8,r18
+ 321 00e4 5A01      		movw r10,r20
+  62:utils/driving.c ****     // Start driving
+  63:utils/driving.c ****     drive(velocity, RadStraight);
+ 323               	.LM28:
+ 324 00e6 60E0      		ldi r22,0
+ 325 00e8 70E8      		ldi r23,lo8(-128)
+ 326 00ea CE01      		movw r24,r28
+ 327 00ec 0E94 0000 		call drive
+  64:utils/driving.c ****     // Wait delay
+  65:utils/driving.c ****     delayMsFunc(time_ms, func, period_ms, cutoff_ms);
+ 329               	.LM29:
+ 330 00f0 9601      		movw r18,r12
+ 331 00f2 A701      		movw r20,r14
+ 332 00f4 C501      		movw r24,r10
+ 333 00f6 B401      		movw r22,r8
+ 334 00f8 0E94 0000 		call delayMsFunc
+ 335               	/* epilogue start */
+  66:utils/driving.c ****     // Stop the Create
+  67:utils/driving.c ****     driveStop();
+  68:utils/driving.c **** }
+ 337               	.LM30:
+ 338 00fc DF91      		pop r29
+ 339 00fe CF91      		pop r28
+ 340 0100 1F91      		pop r17
+ 341 0102 0F91      		pop r16
+ 342 0104 FF90      		pop r15
+ 343 0106 EF90      		pop r14
+ 344 0108 DF90      		pop r13
+ 345 010a CF90      		pop r12
+ 346 010c BF90      		pop r11
+ 347 010e AF90      		pop r10
+ 348 0110 9F90      		pop r9
+ 349 0112 8F90      		pop r8
+  67:utils/driving.c ****     driveStop();
+ 351               	.LM31:
+ 352 0114 0C94 0000 		jmp driveStop
+ 354               	.Lscope5:
+ 362               	.global	driveAngleTFunc
+ 364               	driveAngleTFunc:
+  69:utils/driving.c **** 
+  70:utils/driving.c **** void driveAngleTFunc(int16_t velocity, int16_t radius, int16_t angle,
+  71:utils/driving.c ****         void (*func)(void), uint16_t period_ms, uint16_t cutoff_ms) {
+ 366               	.LM32:
+ 367               	.LFBB6:
+ 368 0118 4F92      		push r4
+ 369 011a 5F92      		push r5
+ 370 011c 6F92      		push r6
+ 371 011e 7F92      		push r7
+ 372 0120 8F92      		push r8
+ 373 0122 9F92      		push r9
+ 374 0124 AF92      		push r10
+ 375 0126 BF92      		push r11
+ 376 0128 CF92      		push r12
+ 377 012a DF92      		push r13
+ 378 012c EF92      		push r14
+ 379 012e FF92      		push r15
+ 380 0130 0F93      		push r16
+ 381 0132 1F93      		push r17
+ 382 0134 CF93      		push r28
+ 383 0136 DF93      		push r29
+ 384               	/* prologue: function */
+ 385               	/* frame size = 0 */
+ 386               	/* stack size = 16 */
+ 387               	.L__stack_usage = 16
+ 388 0138 EC01      		movw r28,r24
+ 389 013a 4B01      		movw r8,r22
+ 390 013c 6901      		movw r12,r18
+ 391 013e 5801      		movw r10,r16
+ 392 0140 8701      		movw r16,r14
+  72:utils/driving.c ****     // Calculate the delay
+  73:utils/driving.c ****     uint32_t time_ms = (PIe5 * TENTH_RADIUS * (uint32_t)angle)
+ 394               	.LM33:
+ 395 0142 DA01      		movw r26,r20
+ 396 0144 23E6      		ldi r18,lo8(99)
+ 397 0146 31E5      		ldi r19,lo8(81)
+ 398 0148 4EE3      		ldi r20,lo8(62)
+ 399 014a 50E0      		ldi r21,0
+ 400 014c 0E94 0000 		call __mulshisi3
+ 401 0150 2B01      		movw r4,r22
+ 402 0152 3C01      		movw r6,r24
+  74:utils/driving.c ****         / (1800 * (uint32_t)velocity);
+ 404               	.LM34:
+ 405 0154 28E0      		ldi r18,lo8(8)
+ 406 0156 37E0      		ldi r19,lo8(7)
+ 407 0158 DE01      		movw r26,r28
+ 408 015a 0E94 0000 		call __usmulhisi3
+ 409 015e 9B01      		movw r18,r22
+ 410 0160 AC01      		movw r20,r24
+  73:utils/driving.c ****     uint32_t time_ms = (PIe5 * TENTH_RADIUS * (uint32_t)angle)
+ 412               	.LM35:
+ 413 0162 C301      		movw r24,r6
+ 414 0164 B201      		movw r22,r4
+ 415 0166 0E94 0000 		call __udivmodsi4
+ 416 016a 2901      		movw r4,r18
+ 417 016c 3A01      		movw r6,r20
+  75:utils/driving.c ****     // Start driving
+  76:utils/driving.c ****     drive(velocity, radius);
+ 419               	.LM36:
+ 420 016e B401      		movw r22,r8
+ 421 0170 CE01      		movw r24,r28
+ 422 0172 0E94 0000 		call drive
+  77:utils/driving.c ****     // Wait delay
+  78:utils/driving.c ****     delayMsFunc(time_ms, func, period_ms, cutoff_ms);
+ 424               	.LM37:
+ 425 0176 9501      		movw r18,r10
+ 426 0178 A601      		movw r20,r12
+ 427 017a C301      		movw r24,r6
+ 428 017c B201      		movw r22,r4
+ 429 017e 0E94 0000 		call delayMsFunc
+ 430               	/* epilogue start */
+  79:utils/driving.c ****     // Stop the Create
+  80:utils/driving.c ****     driveStop();
+  81:utils/driving.c **** }
+ 432               	.LM38:
+ 433 0182 DF91      		pop r29
+ 434 0184 CF91      		pop r28
+ 435 0186 1F91      		pop r17
+ 436 0188 0F91      		pop r16
+ 437 018a FF90      		pop r15
+ 438 018c EF90      		pop r14
+ 439 018e DF90      		pop r13
+ 440 0190 CF90      		pop r12
+ 441 0192 BF90      		pop r11
+ 442 0194 AF90      		pop r10
+ 443 0196 9F90      		pop r9
+ 444 0198 8F90      		pop r8
+ 445 019a 7F90      		pop r7
+ 446 019c 6F90      		pop r6
+ 447 019e 5F90      		pop r5
+ 448 01a0 4F90      		pop r4
+  80:utils/driving.c ****     driveStop();
+ 450               	.LM39:
+ 451 01a2 0C94 0000 		jmp driveStop
+ 453               	.Lscope6:
+ 455               	.Letext0:
+ 456               		.ident	"GCC: (GNU) 4.8.2"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 driving.c
+     /tmp/cclMYvYM.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cclMYvYM.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cclMYvYM.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cclMYvYM.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cclMYvYM.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cclMYvYM.s:106    .text:0000000000000000 drive
+     /tmp/cclMYvYM.s:164    .text:0000000000000046 driveStop
+     /tmp/cclMYvYM.s:185    .text:0000000000000052 driveDistanceOp
+     /tmp/cclMYvYM.s:229    .text:000000000000007a driveAngleOp
+     /tmp/cclMYvYM.s:285    .text:00000000000000ac driveDistanceTFunc
+     /tmp/cclMYvYM.s:364    .text:0000000000000118 driveAngleTFunc
+
+UNDEFINED SYMBOLS
+byteTx
+__usmulhisi3
+__udivmodsi4
+delayMsFunc
+__mulshisi3

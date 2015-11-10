@@ -1,0 +1,290 @@
+   1               		.file	"irobserial.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+ 113               	.global	setSerialDestination
+ 115               	setSerialDestination:
+   1:utils/irobserial.c **** #include <stdint.h>
+   2:utils/irobserial.c **** #include <stdarg.h>
+   3:utils/irobserial.c **** #include <stdio.h>
+   4:utils/irobserial.c **** #include "irobserial.h"
+   5:utils/irobserial.c **** #include "cmod.h"
+   6:utils/irobserial.c **** #include "oi.h"
+   7:utils/irobserial.c **** #include "timer.h"
+   8:utils/irobserial.c **** #include "sensing.h"
+   9:utils/irobserial.c **** 
+  10:utils/irobserial.c **** uint8_t serialDestination = SERIAL_SWITCHING;
+  11:utils/irobserial.c **** 
+  12:utils/irobserial.c **** void setSerialDestination(uint8_t dest) {
+ 117               	.LM0:
+ 118               	.LFBB1:
+ 119 0000 CF93      		push r28
+ 120               	/* prologue: function */
+ 121               	/* frame size = 0 */
+ 122               	/* stack size = 1 */
+ 123               	.L__stack_usage = 1
+ 124 0002 C82F      		mov r28,r24
+  13:utils/irobserial.c ****     serialDestination = SERIAL_SWITCHING;
+ 126               	.LM1:
+ 127 0004 8FEF      		ldi r24,lo8(-1)
+ 128 0006 8093 0000 		sts serialDestination,r24
+  14:utils/irobserial.c ****     // Which serial port should byteTx and byteRx talk to?
+  15:utils/irobserial.c ****     // Ensure any pending bytes have been sent. Without this, the last byte
+  16:utils/irobserial.c ****     // sent before calling this might seem to disappear.
+  17:utils/irobserial.c ****     delayMs(10);
+ 130               	.LM2:
+ 131 000a 6AE0      		ldi r22,lo8(10)
+ 132 000c 70E0      		ldi r23,0
+ 133 000e 80E0      		ldi r24,0
+ 134 0010 90E0      		ldi r25,0
+ 135 0012 0E94 0000 		call delayMs
+  18:utils/irobserial.c ****     // If sensor values are coming in, invalidate them
+  19:utils/irobserial.c ****     invalidateUsart();
+ 137               	.LM3:
+ 138 0016 0E94 0000 		call invalidateUsart
+  20:utils/irobserial.c ****     // Configure the port.
+  21:utils/irobserial.c ****     if (dest == SERIAL_CREATE) {
+ 140               	.LM4:
+ 141 001a C130      		cpi r28,lo8(1)
+ 142 001c 01F4      		brne .L2
+  22:utils/irobserial.c ****         PORTB &= ~0x10 ;
+ 144               	.LM5:
+ 145 001e 2C98      		cbi 0x5,4
+ 146 0020 00C0      		rjmp .L3
+ 147               	.L2:
+  23:utils/irobserial.c ****     } else {
+  24:utils/irobserial.c ****         PORTB |= 0x10 ;
+ 149               	.LM6:
+ 150 0022 2C9A      		sbi 0x5,4
+ 151               	.L3:
+  25:utils/irobserial.c ****     }
+  26:utils/irobserial.c ****     // Wait a bit to let things get back to normal. According to the docs, this
+  27:utils/irobserial.c ****     // should be at least 10 times the amount of time needed to send one byte.
+  28:utils/irobserial.c ****     // This is less than 1 millisecond. We are using a much longer delay to be
+  29:utils/irobserial.c ****     // super extra sure.
+  30:utils/irobserial.c ****     delayMs(10);
+ 153               	.LM7:
+ 154 0024 6AE0      		ldi r22,lo8(10)
+ 155 0026 70E0      		ldi r23,0
+ 156 0028 80E0      		ldi r24,0
+ 157 002a 90E0      		ldi r25,0
+ 158 002c 0E94 0000 		call delayMs
+  31:utils/irobserial.c ****     serialDestination = dest;
+ 160               	.LM8:
+ 161 0030 C093 0000 		sts serialDestination,r28
+ 162               	/* epilogue start */
+  32:utils/irobserial.c **** }
+ 164               	.LM9:
+ 165 0034 CF91      		pop r28
+ 166 0036 0895      		ret
+ 168               	.Lscope1:
+ 170               	.global	getSerialDestination
+ 172               	getSerialDestination:
+  33:utils/irobserial.c **** 
+  34:utils/irobserial.c **** uint8_t getSerialDestination(void) {
+ 174               	.LM10:
+ 175               	.LFBB2:
+ 176               	/* prologue: function */
+ 177               	/* frame size = 0 */
+ 178               	/* stack size = 0 */
+ 179               	.L__stack_usage = 0
+  35:utils/irobserial.c ****    return serialDestination; 
+  36:utils/irobserial.c **** }
+ 181               	.LM11:
+ 182 0038 8091 0000 		lds r24,serialDestination
+ 183 003c 0895      		ret
+ 185               	.Lscope2:
+ 188               	.global	irobprint
+ 190               	irobprint:
+  37:utils/irobserial.c **** 
+  38:utils/irobserial.c **** void irobprint(char* str) {
+ 192               	.LM12:
+ 193               	.LFBB3:
+ 194 003e CF93      		push r28
+ 195 0040 DF93      		push r29
+ 196               	/* prologue: function */
+ 197               	/* frame size = 0 */
+ 198               	/* stack size = 2 */
+ 199               	.L__stack_usage = 2
+ 200 0042 EC01      		movw r28,r24
+ 201               	.L7:
+  39:utils/irobserial.c ****     char c;
+  40:utils/irobserial.c ****     // Null-terminated string
+  41:utils/irobserial.c ****     while ((c = *(str++)) != '\0') {
+ 203               	.LM13:
+ 204 0044 8991      		ld r24,Y+
+ 205 0046 8823      		tst r24
+ 206 0048 01F0      		breq .L9
+  42:utils/irobserial.c ****         // Print each byte
+  43:utils/irobserial.c ****         byteTx(c);
+ 208               	.LM14:
+ 209 004a 0E94 0000 		call byteTx
+ 210 004e 00C0      		rjmp .L7
+ 211               	.L9:
+ 212               	/* epilogue start */
+  44:utils/irobserial.c ****     }
+  45:utils/irobserial.c **** }
+ 214               	.LM15:
+ 215 0050 DF91      		pop r29
+ 216 0052 CF91      		pop r28
+ 217 0054 0895      		ret
+ 222               	.Lscope3:
+ 225               	.global	irobprintf
+ 227               	irobprintf:
+  46:utils/irobserial.c **** 
+  47:utils/irobserial.c **** char printfBuffer[PRINTF_BUFFER_SIZE];
+  48:utils/irobserial.c **** 
+  49:utils/irobserial.c **** void irobprintf(const char* format, ...) {
+ 229               	.LM16:
+ 230               	.LFBB4:
+ 231 0056 CF93      		push r28
+ 232 0058 DF93      		push r29
+ 233 005a CDB7      		in r28,__SP_L__
+ 234 005c DEB7      		in r29,__SP_H__
+ 235               	/* prologue: function */
+ 236               	/* frame size = 0 */
+ 237               	/* stack size = 2 */
+ 238               	.L__stack_usage = 2
+ 239 005e FE01      		movw r30,r28
+ 240 0060 3596      		adiw r30,5
+ 241 0062 4191      		ld r20,Z+
+ 242 0064 5191      		ld r21,Z+
+  50:utils/irobserial.c ****     char* fp = &printfBuffer[0];
+  51:utils/irobserial.c ****     va_list ap;
+  52:utils/irobserial.c ****     va_start(ap, format);
+  53:utils/irobserial.c ****     // Format the string
+  54:utils/irobserial.c ****     vsnprintf(fp, PRINTF_BUFFER_SIZE, format, ap);
+ 244               	.LM17:
+ 245 0066 9F01      		movw r18,r30
+ 246 0068 6FEF      		ldi r22,lo8(-1)
+ 247 006a 70E0      		ldi r23,0
+ 248 006c 80E0      		ldi r24,lo8(printfBuffer)
+ 249 006e 90E0      		ldi r25,hi8(printfBuffer)
+ 250 0070 0E94 0000 		call vsnprintf
+  55:utils/irobserial.c ****     va_end(ap);
+  56:utils/irobserial.c ****     // Print the string
+  57:utils/irobserial.c ****     irobprint(fp);
+ 252               	.LM18:
+ 253 0074 80E0      		ldi r24,lo8(printfBuffer)
+ 254 0076 90E0      		ldi r25,hi8(printfBuffer)
+ 255 0078 0E94 0000 		call irobprint
+ 256               	/* epilogue start */
+  58:utils/irobserial.c **** }
+ 258               	.LM19:
+ 259 007c DF91      		pop r29
+ 260 007e CF91      		pop r28
+ 261 0080 0895      		ret
+ 264               	.Lscope4:
+ 268               	.global	irobnprintf
+ 270               	irobnprintf:
+  59:utils/irobserial.c **** 
+  60:utils/irobserial.c **** void irobnprintf(uint16_t size, const char* format, ...) {
+ 272               	.LM20:
+ 273               	.LFBB5:
+ 274 0082 EF92      		push r14
+ 275 0084 FF92      		push r15
+ 276 0086 0F93      		push r16
+ 277 0088 1F93      		push r17
+ 278 008a CF93      		push r28
+ 279 008c DF93      		push r29
+ 280 008e CDB7      		in r28,__SP_L__
+ 281 0090 DEB7      		in r29,__SP_H__
+ 282               	/* prologue: function */
+ 283               	/* frame size = 0 */
+ 284               	/* stack size = 6 */
+ 285               	.L__stack_usage = 6
+ 286 0092 6985      		ldd r22,Y+9
+ 287 0094 7A85      		ldd r23,Y+10
+  61:utils/irobserial.c ****     // Create a buffer
+  62:utils/irobserial.c ****     char formatted[size];
+  63:utils/irobserial.c ****     char* fp = &formatted[0];
+  64:utils/irobserial.c ****     va_list ap;
+  65:utils/irobserial.c ****     va_start(ap, format);
+  66:utils/irobserial.c ****     // Format the string
+  67:utils/irobserial.c ****     vsnprintf(fp, size, format, ap);
+  68:utils/irobserial.c ****     va_end(ap);
+  69:utils/irobserial.c ****     // Print the string
+  70:utils/irobserial.c ****     irobprint(fp);
+  71:utils/irobserial.c **** }
+ 289               	.LM21:
+ 290 0096 EDB6      		in r14,__SP_L__
+ 291 0098 FEB6      		in r15,__SP_H__
+  62:utils/irobserial.c ****     char formatted[size];
+ 293               	.LM22:
+ 294 009a 8DB7      		in r24,__SP_L__
+ 295 009c 9EB7      		in r25,__SP_H__
+ 296 009e 861B      		sub r24,r22
+ 297 00a0 970B      		sbc r25,r23
+ 298 00a2 0FB6      		in __tmp_reg__,__SREG__
+ 299 00a4 F894      		cli
+ 300 00a6 9EBF      		out __SP_H__,r25
+ 301 00a8 0FBE      		out __SREG__,__tmp_reg__
+ 302 00aa 8DBF      		out __SP_L__,r24
+ 303 00ac 0DB7      		in r16,__SP_L__
+ 304 00ae 1EB7      		in r17,__SP_H__
+ 305 00b0 0F5F      		subi r16,-1
+ 306 00b2 1F4F      		sbci r17,-1
+  67:utils/irobserial.c ****     vsnprintf(fp, size, format, ap);
+ 308               	.LM23:
+ 309 00b4 9E01      		movw r18,r28
+ 310 00b6 235F      		subi r18,-13
+ 311 00b8 3F4F      		sbci r19,-1
+ 312 00ba 4B85      		ldd r20,Y+11
+ 313 00bc 5C85      		ldd r21,Y+12
+ 314 00be C801      		movw r24,r16
+ 315 00c0 0E94 0000 		call vsnprintf
+  70:utils/irobserial.c ****     irobprint(fp);
+ 317               	.LM24:
+ 318 00c4 C801      		movw r24,r16
+ 319 00c6 0E94 0000 		call irobprint
+ 321               	.LM25:
+ 322 00ca 0FB6      		in __tmp_reg__,__SREG__
+ 323 00cc F894      		cli
+ 324 00ce FEBE      		out __SP_H__,r15
+ 325 00d0 0FBE      		out __SREG__,__tmp_reg__
+ 326 00d2 EDBE      		out __SP_L__,r14
+ 327               	/* epilogue start */
+ 328 00d4 DF91      		pop r29
+ 329 00d6 CF91      		pop r28
+ 330 00d8 1F91      		pop r17
+ 331 00da 0F91      		pop r16
+ 332 00dc FF90      		pop r15
+ 333 00de EF90      		pop r14
+ 334 00e0 0895      		ret
+ 337               	.Lscope5:
+ 338               		.comm	printfBuffer,255,1
+ 339               	.global	serialDestination
+ 340               		.data
+ 343               	serialDestination:
+ 344 0000 FF        		.byte	-1
+ 347               		.text
+ 349               	.Letext0:
+ 350               		.ident	"GCC: (GNU) 4.8.2"
+ 351               	.global __do_copy_data
+ 352               	.global __do_clear_bss
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 irobserial.c
+     /tmp/ccyaRAKJ.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccyaRAKJ.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccyaRAKJ.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccyaRAKJ.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccyaRAKJ.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccyaRAKJ.s:115    .text:0000000000000000 setSerialDestination
+     /tmp/ccyaRAKJ.s:343    .data:0000000000000000 serialDestination
+     /tmp/ccyaRAKJ.s:172    .text:0000000000000038 getSerialDestination
+     /tmp/ccyaRAKJ.s:190    .text:000000000000003e irobprint
+     /tmp/ccyaRAKJ.s:227    .text:0000000000000056 irobprintf
+                            *COM*:00000000000000ff printfBuffer
+     /tmp/ccyaRAKJ.s:270    .text:0000000000000082 irobnprintf
+
+UNDEFINED SYMBOLS
+delayMs
+invalidateUsart
+byteTx
+vsnprintf
+__do_copy_data
+__do_clear_bss

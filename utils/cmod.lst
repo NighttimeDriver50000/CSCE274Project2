@@ -1,0 +1,399 @@
+   1               		.file	"cmod.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+ 104               	.global	setupIOPins
+ 106               	setupIOPins:
+   1:utils/cmod.c  **** #include "cmod.h"
+   2:utils/cmod.c  **** #include "oi.h"
+   3:utils/cmod.c  **** #include "timer.h"
+   4:utils/cmod.c  **** 
+   5:utils/cmod.c  **** void initializeCommandModule(void){
+   6:utils/cmod.c  ****   // Disable interrupts. ("Clear interrupt bit")
+   7:utils/cmod.c  ****   cli();
+   8:utils/cmod.c  **** 
+   9:utils/cmod.c  ****   // One-time setup operations.
+  10:utils/cmod.c  ****   setupIOPins();
+  11:utils/cmod.c  ****   setupTimer();
+  12:utils/cmod.c  ****   setupSerialPort();
+  13:utils/cmod.c  **** 
+  14:utils/cmod.c  ****   // Enable interrupts. ("Set interrupt bit")
+  15:utils/cmod.c  ****   sei();
+  16:utils/cmod.c  **** }
+  17:utils/cmod.c  **** 
+  18:utils/cmod.c  **** void setupIOPins(void) {
+ 108               	.LM0:
+ 109               	.LFBB1:
+ 110               	/* prologue: function */
+ 111               	/* frame size = 0 */
+ 112               	/* stack size = 0 */
+ 113               	.L__stack_usage = 0
+  19:utils/cmod.c  ****   // Set I/O pins
+  20:utils/cmod.c  ****   DDRB  = 0x10;
+ 115               	.LM1:
+ 116 0000 80E1      		ldi r24,lo8(16)
+ 117 0002 84B9      		out 0x4,r24
+  21:utils/cmod.c  ****   PORTB = 0xCF;
+ 119               	.LM2:
+ 120 0004 8FEC      		ldi r24,lo8(-49)
+ 121 0006 85B9      		out 0x5,r24
+  22:utils/cmod.c  ****   DDRC  = 0x00;
+ 123               	.LM3:
+ 124 0008 17B8      		out 0x7,__zero_reg__
+  23:utils/cmod.c  ****   PORTC = 0xFF;
+ 126               	.LM4:
+ 127 000a 8FEF      		ldi r24,lo8(-1)
+ 128 000c 88B9      		out 0x8,r24
+  24:utils/cmod.c  ****   DDRD  = 0xE6;
+ 130               	.LM5:
+ 131 000e 86EE      		ldi r24,lo8(-26)
+ 132 0010 8AB9      		out 0xa,r24
+  25:utils/cmod.c  ****   PORTD = 0x7D;
+ 134               	.LM6:
+ 135 0012 8DE7      		ldi r24,lo8(125)
+ 136 0014 8BB9      		out 0xb,r24
+ 137 0016 0895      		ret
+ 139               	.Lscope1:
+ 141               	.global	setupSerialPort
+ 143               	setupSerialPort:
+  26:utils/cmod.c  **** }
+  27:utils/cmod.c  **** 
+  28:utils/cmod.c  **** void setupSerialPort(void) {
+ 145               	.LM7:
+ 146               	.LFBB2:
+ 147               	/* prologue: function */
+ 148               	/* frame size = 0 */
+ 149               	/* stack size = 0 */
+ 150               	.L__stack_usage = 0
+  29:utils/cmod.c  ****   // Set the transmission speed to 57600 baud, which is what the Create expects,
+  30:utils/cmod.c  ****   // unless we tell it otherwise.
+  31:utils/cmod.c  ****   UBRR0 = 19;
+ 152               	.LM8:
+ 153 0018 83E1      		ldi r24,lo8(19)
+ 154 001a 90E0      		ldi r25,0
+ 155 001c 9093 C500 		sts 196+1,r25
+ 156 0020 8093 C400 		sts 196,r24
+  32:utils/cmod.c  ****   
+  33:utils/cmod.c  ****   // Enable both transmit and receive.
+  34:utils/cmod.c  ****   UCSR0B = (_BV(RXCIE0) | _BV(TXEN0) | _BV(RXEN0));
+ 158               	.LM9:
+ 159 0024 88E9      		ldi r24,lo8(-104)
+ 160 0026 8093 C100 		sts 193,r24
+  35:utils/cmod.c  ****     // UCSR0B = 0x18;
+  36:utils/cmod.c  ****   
+  37:utils/cmod.c  ****   // Set 8-bit data.
+  38:utils/cmod.c  ****   UCSR0C = (_BV(UCSZ00) | _BV(UCSZ01));
+ 162               	.LM10:
+ 163 002a 86E0      		ldi r24,lo8(6)
+ 164 002c 8093 C200 		sts 194,r24
+ 165 0030 0895      		ret
+ 167               	.Lscope2:
+ 169               	.global	initializeCommandModule
+ 171               	initializeCommandModule:
+   5:utils/cmod.c  **** void initializeCommandModule(void){
+ 173               	.LM11:
+ 174               	.LFBB3:
+ 175               	/* prologue: function */
+ 176               	/* frame size = 0 */
+ 177               	/* stack size = 0 */
+ 178               	.L__stack_usage = 0
+   7:utils/cmod.c  ****   cli();
+ 180               	.LM12:
+ 181               	/* #APP */
+ 182               	 ;  7 "utils/cmod.c" 1
+ 183 0032 F894      		cli
+ 184               	 ;  0 "" 2
+  10:utils/cmod.c  ****   setupIOPins();
+ 186               	.LM13:
+ 187               	/* #NOAPP */
+ 188 0034 0E94 0000 		call setupIOPins
+  11:utils/cmod.c  ****   setupTimer();
+ 190               	.LM14:
+ 191 0038 0E94 0000 		call setupTimer
+  12:utils/cmod.c  ****   setupSerialPort();
+ 193               	.LM15:
+ 194 003c 0E94 0000 		call setupSerialPort
+  15:utils/cmod.c  ****   sei();
+ 196               	.LM16:
+ 197               	/* #APP */
+ 198               	 ;  15 "utils/cmod.c" 1
+ 199 0040 7894      		sei
+ 200               	 ;  0 "" 2
+ 201               	/* #NOAPP */
+ 202 0042 0895      		ret
+ 204               	.Lscope3:
+ 207               	.global	byteTx
+ 209               	byteTx:
+  39:utils/cmod.c  ****     // UCSR0C = 0x06;
+  40:utils/cmod.c  **** }
+  41:utils/cmod.c  **** 
+  42:utils/cmod.c  **** void byteTx(uint8_t value) {
+ 211               	.LM17:
+ 212               	.LFBB4:
+ 213               	/* prologue: function */
+ 214               	/* frame size = 0 */
+ 215               	/* stack size = 0 */
+ 216               	.L__stack_usage = 0
+ 217               	.L6:
+  43:utils/cmod.c  ****   // Transmit one byte to the robot.
+  44:utils/cmod.c  ****   // Wait for the buffer to be empty.
+  45:utils/cmod.c  ****   while(!(UCSR0A & 0x20)) ;
+ 219               	.LM18:
+ 220 0044 9091 C000 		lds r25,192
+ 221 0048 95FF      		sbrs r25,5
+ 222 004a 00C0      		rjmp .L6
+  46:utils/cmod.c  **** 
+  47:utils/cmod.c  ****   // Send the byte.
+  48:utils/cmod.c  ****   UDR0 = value;
+ 224               	.LM19:
+ 225 004c 8093 C600 		sts 198,r24
+ 226 0050 0895      		ret
+ 228               	.Lscope4:
+ 230               	.global	byteRx
+ 232               	byteRx:
+  49:utils/cmod.c  **** }
+  50:utils/cmod.c  **** 
+  51:utils/cmod.c  **** uint8_t byteRx(void) {
+ 234               	.LM20:
+ 235               	.LFBB5:
+ 236               	/* prologue: function */
+ 237               	/* frame size = 0 */
+ 238               	/* stack size = 0 */
+ 239               	.L__stack_usage = 0
+ 240               	.L10:
+  52:utils/cmod.c  ****   // Receive one byte from the robot.
+  53:utils/cmod.c  ****   // Call setupSerialPort() first.
+  54:utils/cmod.c  ****   // Wait for a byte to arrive in the recieve buffer.
+  55:utils/cmod.c  ****   while(!(UCSR0A & 0x80)) ;
+ 242               	.LM21:
+ 243 0052 8091 C000 		lds r24,192
+ 244 0056 87FF      		sbrs r24,7
+ 245 0058 00C0      		rjmp .L10
+  56:utils/cmod.c  ****   
+  57:utils/cmod.c  ****   // Return that byte.
+  58:utils/cmod.c  ****   return UDR0;
+ 247               	.LM22:
+ 248 005a 8091 C600 		lds r24,198
+  59:utils/cmod.c  **** }
+ 250               	.LM23:
+ 251 005e 0895      		ret
+ 253               	.Lscope5:
+ 256               	.global	baud
+ 258               	baud:
+  60:utils/cmod.c  **** 
+  61:utils/cmod.c  **** void baud(uint8_t baud_code) {
+ 260               	.LM24:
+ 261               	.LFBB6:
+ 262 0060 CF93      		push r28
+ 263               	/* prologue: function */
+ 264               	/* frame size = 0 */
+ 265               	/* stack size = 1 */
+ 266               	.L__stack_usage = 1
+ 267 0062 C82F      		mov r28,r24
+  62:utils/cmod.c  ****   // Switch the baud rate on both Create and module
+  63:utils/cmod.c  ****   if(baud_code <= 11)
+ 269               	.LM25:
+ 270 0064 8C30      		cpi r24,lo8(12)
+ 271 0066 00F0      		brlo .+2
+ 272 0068 00C0      		rjmp .L11
+  64:utils/cmod.c  ****   {
+  65:utils/cmod.c  ****     byteTx(CmdBaud);
+ 274               	.LM26:
+ 275 006a 81E8      		ldi r24,lo8(-127)
+ 276 006c 0E94 0000 		call byteTx
+  66:utils/cmod.c  ****     UCSR0A |= _BV(TXC0);
+ 278               	.LM27:
+ 279 0070 8091 C000 		lds r24,192
+ 280 0074 8064      		ori r24,lo8(64)
+ 281 0076 8093 C000 		sts 192,r24
+  67:utils/cmod.c  ****     byteTx(baud_code);
+ 283               	.LM28:
+ 284 007a 8C2F      		mov r24,r28
+ 285 007c 0E94 0000 		call byteTx
+ 286               	.L14:
+  68:utils/cmod.c  ****     // Wait until transmit is complete
+  69:utils/cmod.c  ****     while(!(UCSR0A & _BV(TXC0))) ;
+ 288               	.LM29:
+ 289 0080 8091 C000 		lds r24,192
+ 290 0084 86FF      		sbrs r24,6
+ 291 0086 00C0      		rjmp .L14
+  70:utils/cmod.c  **** 
+  71:utils/cmod.c  ****     cli();
+ 293               	.LM30:
+ 294               	/* #APP */
+ 295               	 ;  71 "utils/cmod.c" 1
+ 296 0088 F894      		cli
+ 297               	 ;  0 "" 2
+  72:utils/cmod.c  **** 
+  73:utils/cmod.c  ****     // Switch the baud rate register
+  74:utils/cmod.c  ****     if(baud_code == Baud115200) {
+ 299               	.LM31:
+ 300               	/* #NOAPP */
+ 301 008a CB30      		cpi r28,lo8(11)
+ 302 008c 01F4      		brne .L15
+  75:utils/cmod.c  ****       UBRR0 = Ubrr115200;
+ 304               	.LM32:
+ 305 008e 89E0      		ldi r24,lo8(9)
+ 306 0090 90E0      		ldi r25,0
+ 307 0092 00C0      		rjmp .L27
+ 308               	.L15:
+  76:utils/cmod.c  ****     } else if(baud_code == Baud57600) {
+ 310               	.LM33:
+ 311 0094 CA30      		cpi r28,lo8(10)
+ 312 0096 01F4      		brne .L17
+  77:utils/cmod.c  ****       UBRR0 = Ubrr57600;
+ 314               	.LM34:
+ 315 0098 83E1      		ldi r24,lo8(19)
+ 316 009a 90E0      		ldi r25,0
+ 317 009c 00C0      		rjmp .L27
+ 318               	.L17:
+  78:utils/cmod.c  ****     } else if(baud_code == Baud38400) {
+ 320               	.LM35:
+ 321 009e C930      		cpi r28,lo8(9)
+ 322 00a0 01F4      		brne .L18
+  79:utils/cmod.c  ****       UBRR0 = Ubrr38400;
+ 324               	.LM36:
+ 325 00a2 8DE1      		ldi r24,lo8(29)
+ 326 00a4 90E0      		ldi r25,0
+ 327 00a6 00C0      		rjmp .L27
+ 328               	.L18:
+  80:utils/cmod.c  ****     } else if(baud_code == Baud28800) {
+ 330               	.LM37:
+ 331 00a8 C830      		cpi r28,lo8(8)
+ 332 00aa 01F4      		brne .L19
+  81:utils/cmod.c  ****       UBRR0 = Ubrr28800;
+ 334               	.LM38:
+ 335 00ac 87E2      		ldi r24,lo8(39)
+ 336 00ae 90E0      		ldi r25,0
+ 337 00b0 00C0      		rjmp .L27
+ 338               	.L19:
+  82:utils/cmod.c  ****     } else if(baud_code == Baud19200) {
+ 340               	.LM39:
+ 341 00b2 C730      		cpi r28,lo8(7)
+ 342 00b4 01F4      		brne .L20
+  83:utils/cmod.c  ****       UBRR0 = Ubrr19200;
+ 344               	.LM40:
+ 345 00b6 8BE3      		ldi r24,lo8(59)
+ 346 00b8 90E0      		ldi r25,0
+ 347 00ba 00C0      		rjmp .L27
+ 348               	.L20:
+  84:utils/cmod.c  ****     } else if(baud_code == Baud14400) {
+ 350               	.LM41:
+ 351 00bc C630      		cpi r28,lo8(6)
+ 352 00be 01F4      		brne .L21
+  85:utils/cmod.c  ****       UBRR0 = Ubrr14400;
+ 354               	.LM42:
+ 355 00c0 8FE4      		ldi r24,lo8(79)
+ 356 00c2 90E0      		ldi r25,0
+ 357 00c4 00C0      		rjmp .L27
+ 358               	.L21:
+  86:utils/cmod.c  ****     } else if(baud_code == Baud9600) {
+ 360               	.LM43:
+ 361 00c6 C530      		cpi r28,lo8(5)
+ 362 00c8 01F4      		brne .L22
+  87:utils/cmod.c  ****       UBRR0 = Ubrr9600;
+ 364               	.LM44:
+ 365 00ca 87E7      		ldi r24,lo8(119)
+ 366 00cc 90E0      		ldi r25,0
+ 367 00ce 00C0      		rjmp .L27
+ 368               	.L22:
+  88:utils/cmod.c  ****     } else if(baud_code == Baud4800) {
+ 370               	.LM45:
+ 371 00d0 C430      		cpi r28,lo8(4)
+ 372 00d2 01F4      		brne .L23
+  89:utils/cmod.c  ****       UBRR0 = Ubrr4800;
+ 374               	.LM46:
+ 375 00d4 8FEE      		ldi r24,lo8(-17)
+ 376 00d6 90E0      		ldi r25,0
+ 377 00d8 00C0      		rjmp .L27
+ 378               	.L23:
+  90:utils/cmod.c  ****     } else if(baud_code == Baud2400) {
+ 380               	.LM47:
+ 381 00da C330      		cpi r28,lo8(3)
+ 382 00dc 01F4      		brne .L24
+  91:utils/cmod.c  ****       UBRR0 = Ubrr2400;
+ 384               	.LM48:
+ 385 00de 8FED      		ldi r24,lo8(-33)
+ 386 00e0 91E0      		ldi r25,lo8(1)
+ 387 00e2 00C0      		rjmp .L27
+ 388               	.L24:
+  92:utils/cmod.c  ****     } else if(baud_code == Baud1200) {
+ 390               	.LM49:
+ 391 00e4 C230      		cpi r28,lo8(2)
+ 392 00e6 01F4      		brne .L25
+  93:utils/cmod.c  ****       UBRR0 = Ubrr1200;
+ 394               	.LM50:
+ 395 00e8 8FEB      		ldi r24,lo8(-65)
+ 396 00ea 93E0      		ldi r25,lo8(3)
+ 397 00ec 00C0      		rjmp .L27
+ 398               	.L25:
+  94:utils/cmod.c  ****     } else if(baud_code == Baud600) {
+ 400               	.LM51:
+ 401 00ee C130      		cpi r28,lo8(1)
+ 402 00f0 01F4      		brne .L26
+  95:utils/cmod.c  ****       UBRR0 = Ubrr600;
+ 404               	.LM52:
+ 405 00f2 8FE7      		ldi r24,lo8(127)
+ 406 00f4 97E0      		ldi r25,lo8(7)
+ 407 00f6 00C0      		rjmp .L27
+ 408               	.L26:
+  96:utils/cmod.c  ****     } else if(baud_code == Baud300) {
+  97:utils/cmod.c  ****       UBRR0 = Ubrr300;
+ 410               	.LM53:
+ 411 00f8 8FEF      		ldi r24,lo8(-1)
+ 412 00fa 9EE0      		ldi r25,lo8(14)
+ 413               	.L27:
+ 414 00fc 9093 C500 		sts 196+1,r25
+ 415 0100 8093 C400 		sts 196,r24
+  98:utils/cmod.c  ****     }
+  99:utils/cmod.c  ****     sei();
+ 417               	.LM54:
+ 418               	/* #APP */
+ 419               	 ;  99 "utils/cmod.c" 1
+ 420 0104 7894      		sei
+ 421               	 ;  0 "" 2
+ 100:utils/cmod.c  **** 
+ 101:utils/cmod.c  ****     delayMs(100);
+ 423               	.LM55:
+ 424               	/* #NOAPP */
+ 425 0106 64E6      		ldi r22,lo8(100)
+ 426 0108 70E0      		ldi r23,0
+ 427 010a 80E0      		ldi r24,0
+ 428 010c 90E0      		ldi r25,0
+ 429               	/* epilogue start */
+ 102:utils/cmod.c  ****   }
+ 103:utils/cmod.c  **** }
+ 431               	.LM56:
+ 432 010e CF91      		pop r28
+ 101:utils/cmod.c  ****     delayMs(100);
+ 434               	.LM57:
+ 435 0110 0C94 0000 		jmp delayMs
+ 436               	.L11:
+ 437               	/* epilogue start */
+ 439               	.LM58:
+ 440 0114 CF91      		pop r28
+ 441 0116 0895      		ret
+ 443               	.Lscope6:
+ 445               	.Letext0:
+ 446               		.ident	"GCC: (GNU) 4.8.2"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 cmod.c
+     /tmp/ccqoxWWQ.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccqoxWWQ.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccqoxWWQ.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccqoxWWQ.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccqoxWWQ.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccqoxWWQ.s:106    .text:0000000000000000 setupIOPins
+     /tmp/ccqoxWWQ.s:143    .text:0000000000000018 setupSerialPort
+     /tmp/ccqoxWWQ.s:171    .text:0000000000000032 initializeCommandModule
+     /tmp/ccqoxWWQ.s:209    .text:0000000000000044 byteTx
+     /tmp/ccqoxWWQ.s:232    .text:0000000000000052 byteRx
+     /tmp/ccqoxWWQ.s:258    .text:0000000000000060 baud
+
+UNDEFINED SYMBOLS
+setupTimer
+delayMs

@@ -5,7 +5,11 @@
 #include "oi.h"
 #include "irobserial.h"
 
-volatile uint8_t usartActive = 0;
+#define USART_ACTIVE    (1 << 0)
+#define USART_VALID     (1 << 1)
+
+// Bit 0: Active, Bit 1: Valid
+volatile uint8_t usartStatus = 0;
 volatile uint8_t sensorIndex = 0;
 volatile uint8_t sensorBuffer[Sen6Size];
 volatile uint8_t sensors[Sen6Size];
@@ -22,38 +26,47 @@ uint8_t read1ByteSensorPacket(uint8_t packetId) {
     return byteRx();
 }
 
+void invalidateUsart(void) {
+    // Not invalid if data isn't coming in
+    if (usartStatus & USART_ACTIVE) {
+        usartStatus = 0;
+    }
+}
+
 ISR(USART_RX_vect) {
     // Cache the retrieved byte
     uint8_t tmpUDR0;
     tmpUDR0 = UDR0;
     // Don't do anything if we're not looking
-    if (usartActive) {
+    if (usartStatus & USART_ACTIVE) {
         if (getSerialDestination() == SERIAL_CREATE) {
             // New sensor data from the create
             sensorBuffer[sensorIndex++] = tmpUDR0;
+            if (sensorIndex >= Sen6Size) {
+                // Reached end of sensor packet
+                usartStatus = USART_VALID;
+            }
         } else {
-            // Probably input from the computer, loop old values around
-            sensorBuffer[sensorIndex] = sensors[sensorIndex];
-            sensorIndex++;
-        }
-        if (sensorIndex >= Sen6Size) {
-            // Reached end of sensor packet
-            usartActive = 0;
+            // Probably input from the computer, invalidate
+            invalidateUsart();
         }
     }
 }
 
 void updateSensors(void) {
     // Don't do anything if sensors are still coming in
-    if (!usartActive) {
-        uint8_t i;
-        for (i = 0; i < Sen6Size; i++) {
-            // Copy in the sensor buffer so the most recent data is available
-            sensors[i] = sensorBuffer[i];
+    if (!(usartStatus & USART_ACTIVE)) {
+        // Don't copy if data invalid
+        if (usartStatus & USART_VALID) {
+            uint8_t i;
+            for (i = 0; i < Sen6Size; i++) {
+                // Copy in the sensor buffer so the most recent data is available
+                sensors[i] = sensorBuffer[i];
+            }
         }
         // Bookkeeping
         sensorIndex = 0;
-        usartActive = 1;
+        usartStatus = USART_ACTIVE & USART_VALID;
         // Request all sensor data
         requestPacket(PACKET_ALL);
     }

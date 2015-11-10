@@ -62,6 +62,9 @@ void requestPacket(uint8_t packetId);
  */
 uint8_t read1ByteSensorPacket(uint8_t packetId);
 
+//! Invalidate currently-coming-in sensor data
+void invalidateUsart(void);
+
 //! Request all packets (will be retrieved by USART)
 void updateSensors(void);
 
