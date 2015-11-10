@@ -73,8 +73,8 @@ void updateSensors(void) {
 }
 
 void waitForSensors(void) {
-    // Sensors data are coming in if usartActive is true
-    while(usartActive);
+    // Sensors data are coming in if usart is active
+    while(usartStatus & USART_ACTIVE);
 }
 
 void delayAndUpdateSensors(uint32_t time_ms) {
