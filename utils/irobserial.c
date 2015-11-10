@@ -5,6 +5,7 @@
 #include "cmod.h"
 #include "oi.h"
 #include "timer.h"
+#include "sensing.h"
 
 uint8_t serialDestination = SERIAL_SWITCHING;
 
@@ -14,6 +15,8 @@ void setSerialDestination(uint8_t dest) {
     // Ensure any pending bytes have been sent. Without this, the last byte
     // sent before calling this might seem to disappear.
     delayMs(10);
+    // If sensor values are coming in, invalidate them
+    invalidateUsart();
     // Configure the port.
     if (dest == SERIAL_CREATE) {
         PORTB &= ~0x10 ;
