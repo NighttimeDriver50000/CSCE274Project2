@@ -1,0 +1,438 @@
+   1               		.file	"sensing.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+ 111               	.global	requestPacket
+ 113               	requestPacket:
+   1:utils/sensing.c **** #include <stdint.h>
+   2:utils/sensing.c **** #include "sensing.h"
+   3:utils/sensing.c **** #include "cmod.h"
+   4:utils/sensing.c **** #include "timer.h"
+   5:utils/sensing.c **** #include "oi.h"
+   6:utils/sensing.c **** #include "irobserial.h"
+   7:utils/sensing.c **** 
+   8:utils/sensing.c **** volatile uint8_t usartActive = 0;
+   9:utils/sensing.c **** volatile uint8_t sensorIndex = 0;
+  10:utils/sensing.c **** volatile uint8_t sensorBuffer[Sen6Size];
+  11:utils/sensing.c **** volatile uint8_t sensors[Sen6Size];
+  12:utils/sensing.c **** 
+  13:utils/sensing.c **** void requestPacket(uint8_t packetId) {
+ 115               	.LM0:
+ 116               	.LFBB1:
+ 117 0000 CF93      		push r28
+ 118               	/* prologue: function */
+ 119               	/* frame size = 0 */
+ 120               	/* stack size = 1 */
+ 121               	.L__stack_usage = 1
+ 122 0002 C82F      		mov r28,r24
+  14:utils/sensing.c ****     byteTx(CmdSensors);
+ 124               	.LM1:
+ 125 0004 8EE8      		ldi r24,lo8(-114)
+ 126 0006 0E94 0000 		call byteTx
+  15:utils/sensing.c ****     byteTx(packetId);
+ 128               	.LM2:
+ 129 000a 8C2F      		mov r24,r28
+ 130               	/* epilogue start */
+  16:utils/sensing.c **** }
+ 132               	.LM3:
+ 133 000c CF91      		pop r28
+  15:utils/sensing.c ****     byteTx(packetId);
+ 135               	.LM4:
+ 136 000e 0C94 0000 		jmp byteTx
+ 138               	.Lscope1:
+ 140               	.global	updateSensors
+ 142               	updateSensors:
+  17:utils/sensing.c **** 
+  18:utils/sensing.c **** uint8_t read1ByteSensorPacket(uint8_t packetId) {
+  19:utils/sensing.c ****     // Send the packet ID
+  20:utils/sensing.c ****     requestPacket(packetId);
+  21:utils/sensing.c ****     // Read the packet byte
+  22:utils/sensing.c ****     return byteRx();
+  23:utils/sensing.c **** }
+  24:utils/sensing.c **** 
+  25:utils/sensing.c **** ISR(USART_RX_vect) {
+  26:utils/sensing.c ****     // Cache the retrieved byte
+  27:utils/sensing.c ****     uint8_t tmpUDR0;
+  28:utils/sensing.c ****     tmpUDR0 = UDR0;
+  29:utils/sensing.c ****     // Don't do anything if we're not looking
+  30:utils/sensing.c ****     if (usartActive) {
+  31:utils/sensing.c ****         if (getSerialDestination() == SERIAL_CREATE) {
+  32:utils/sensing.c ****             // New sensor data from the create
+  33:utils/sensing.c ****             sensorBuffer[sensorIndex++] = tmpUDR0;
+  34:utils/sensing.c ****         } else {
+  35:utils/sensing.c ****             // Probably input from the computer, loop old values around
+  36:utils/sensing.c ****             sensorBuffer[sensorIndex] = sensors[sensorIndex];
+  37:utils/sensing.c ****             sensorIndex++;
+  38:utils/sensing.c ****         }
+  39:utils/sensing.c ****         if (sensorIndex >= Sen6Size) {
+  40:utils/sensing.c ****             // Reached end of sensor packet
+  41:utils/sensing.c ****             usartActive = 0;
+  42:utils/sensing.c ****         }
+  43:utils/sensing.c ****     }
+  44:utils/sensing.c **** }
+  45:utils/sensing.c **** 
+  46:utils/sensing.c **** void updateSensors(void) {
+ 144               	.LM5:
+ 145               	.LFBB2:
+ 146               	/* prologue: function */
+ 147               	/* frame size = 0 */
+ 148               	/* stack size = 0 */
+ 149               	.L__stack_usage = 0
+  47:utils/sensing.c ****     // Don't do anything if sensors are still coming in
+  48:utils/sensing.c ****     if (!usartActive) {
+ 151               	.LM6:
+ 152 0012 8091 0000 		lds r24,usartActive
+ 153 0016 8111      		cpse r24,__zero_reg__
+ 154 0018 00C0      		rjmp .L2
+ 155 001a 80E0      		ldi r24,0
+ 156 001c 90E0      		ldi r25,0
+ 157               	.L5:
+ 158               	.LBB9:
+ 159               	.LBB10:
+  49:utils/sensing.c ****         uint8_t i;
+  50:utils/sensing.c ****         for (i = 0; i < Sen6Size; i++) {
+  51:utils/sensing.c ****             // Copy in the sensor buffer so the most recent data is available
+  52:utils/sensing.c ****             sensors[i] = sensorBuffer[i];
+ 161               	.LM7:
+ 162 001e FC01      		movw r30,r24
+ 163 0020 E050      		subi r30,lo8(-(sensorBuffer))
+ 164 0022 F040      		sbci r31,hi8(-(sensorBuffer))
+ 165 0024 2081      		ld r18,Z
+ 166 0026 FC01      		movw r30,r24
+ 167 0028 E050      		subi r30,lo8(-(sensors))
+ 168 002a F040      		sbci r31,hi8(-(sensors))
+ 169 002c 2083      		st Z,r18
+ 170 002e 0196      		adiw r24,1
+  50:utils/sensing.c ****         for (i = 0; i < Sen6Size; i++) {
+ 172               	.LM8:
+ 173 0030 8433      		cpi r24,52
+ 174 0032 9105      		cpc r25,__zero_reg__
+ 175 0034 01F4      		brne .L5
+  53:utils/sensing.c ****         }
+  54:utils/sensing.c ****         // Bookkeeping
+  55:utils/sensing.c ****         sensorIndex = 0;
+ 177               	.LM9:
+ 178 0036 1092 0000 		sts sensorIndex,__zero_reg__
+  56:utils/sensing.c ****         usartActive = 1;
+ 180               	.LM10:
+ 181 003a 81E0      		ldi r24,lo8(1)
+ 182 003c 8093 0000 		sts usartActive,r24
+  57:utils/sensing.c ****         // Request all sensor data
+  58:utils/sensing.c ****         requestPacket(PACKET_ALL);
+ 184               	.LM11:
+ 185 0040 86E0      		ldi r24,lo8(6)
+ 186 0042 0C94 0000 		jmp requestPacket
+ 187               	.L2:
+ 188 0046 0895      		ret
+ 189               	.LBE10:
+ 190               	.LBE9:
+ 192               	.Lscope2:
+ 195               	.global	read1ByteSensorPacket
+ 197               	read1ByteSensorPacket:
+  18:utils/sensing.c **** uint8_t read1ByteSensorPacket(uint8_t packetId) {
+ 199               	.LM12:
+ 200               	.LFBB3:
+ 201               	/* prologue: function */
+ 202               	/* frame size = 0 */
+ 203               	/* stack size = 0 */
+ 204               	.L__stack_usage = 0
+  20:utils/sensing.c ****     requestPacket(packetId);
+ 206               	.LM13:
+ 207 0048 0E94 0000 		call requestPacket
+  22:utils/sensing.c ****     return byteRx();
+ 209               	.LM14:
+ 210 004c 0C94 0000 		jmp byteRx
+ 212               	.Lscope3:
+ 214               	.global	__vector_18
+ 216               	__vector_18:
+  25:utils/sensing.c **** ISR(USART_RX_vect) {
+ 218               	.LM15:
+ 219               	.LFBB4:
+ 220 0050 1F92      		push r1
+ 221 0052 0F92      		push r0
+ 222 0054 0FB6      		in r0,__SREG__
+ 223 0056 0F92      		push r0
+ 224 0058 1124      		clr __zero_reg__
+ 225 005a 2F93      		push r18
+ 226 005c 3F93      		push r19
+ 227 005e 4F93      		push r20
+ 228 0060 5F93      		push r21
+ 229 0062 6F93      		push r22
+ 230 0064 7F93      		push r23
+ 231 0066 8F93      		push r24
+ 232 0068 9F93      		push r25
+ 233 006a AF93      		push r26
+ 234 006c BF93      		push r27
+ 235 006e CF93      		push r28
+ 236 0070 EF93      		push r30
+ 237 0072 FF93      		push r31
+ 238               	/* prologue: Signal */
+ 239               	/* frame size = 0 */
+ 240               	/* stack size = 16 */
+ 241               	.L__stack_usage = 16
+  28:utils/sensing.c ****     tmpUDR0 = UDR0;
+ 243               	.LM16:
+ 244 0074 C091 C600 		lds r28,198
+  30:utils/sensing.c ****     if (usartActive) {
+ 246               	.LM17:
+ 247 0078 8091 0000 		lds r24,usartActive
+ 248 007c 8823      		tst r24
+ 249 007e 01F0      		breq .L8
+  31:utils/sensing.c ****         if (getSerialDestination() == SERIAL_CREATE) {
+ 251               	.LM18:
+ 252 0080 0E94 0000 		call getSerialDestination
+  33:utils/sensing.c ****             sensorBuffer[sensorIndex++] = tmpUDR0;
+ 254               	.LM19:
+ 255 0084 E091 0000 		lds r30,sensorIndex
+  31:utils/sensing.c ****         if (getSerialDestination() == SERIAL_CREATE) {
+ 257               	.LM20:
+ 258 0088 8130      		cpi r24,lo8(1)
+ 259 008a 01F4      		brne .L11
+  33:utils/sensing.c ****             sensorBuffer[sensorIndex++] = tmpUDR0;
+ 261               	.LM21:
+ 262 008c 8E0F      		add r24,r30
+ 263 008e 8093 0000 		sts sensorIndex,r24
+ 264 0092 F0E0      		ldi r31,0
+ 265 0094 E050      		subi r30,lo8(-(sensorBuffer))
+ 266 0096 F040      		sbci r31,hi8(-(sensorBuffer))
+ 267 0098 C083      		st Z,r28
+ 268 009a 00C0      		rjmp .L12
+ 269               	.L11:
+  36:utils/sensing.c ****             sensorBuffer[sensorIndex] = sensors[sensorIndex];
+ 271               	.LM22:
+ 272 009c F0E0      		ldi r31,0
+ 273 009e A091 0000 		lds r26,sensorIndex
+ 274 00a2 B0E0      		ldi r27,0
+ 275 00a4 A050      		subi r26,lo8(-(sensors))
+ 276 00a6 B040      		sbci r27,hi8(-(sensors))
+ 277 00a8 8C91      		ld r24,X
+ 278 00aa E050      		subi r30,lo8(-(sensorBuffer))
+ 279 00ac F040      		sbci r31,hi8(-(sensorBuffer))
+ 280 00ae 8083      		st Z,r24
+  37:utils/sensing.c ****             sensorIndex++;
+ 282               	.LM23:
+ 283 00b0 8091 0000 		lds r24,sensorIndex
+ 284 00b4 8F5F      		subi r24,lo8(-(1))
+ 285 00b6 8093 0000 		sts sensorIndex,r24
+ 286               	.L12:
+  39:utils/sensing.c ****         if (sensorIndex >= Sen6Size) {
+ 288               	.LM24:
+ 289 00ba 8091 0000 		lds r24,sensorIndex
+ 290 00be 8433      		cpi r24,lo8(52)
+ 291 00c0 00F0      		brlo .L8
+  41:utils/sensing.c ****             usartActive = 0;
+ 293               	.LM25:
+ 294 00c2 1092 0000 		sts usartActive,__zero_reg__
+ 295               	.L8:
+ 296               	/* epilogue start */
+  44:utils/sensing.c **** }
+ 298               	.LM26:
+ 299 00c6 FF91      		pop r31
+ 300 00c8 EF91      		pop r30
+ 301 00ca CF91      		pop r28
+ 302 00cc BF91      		pop r27
+ 303 00ce AF91      		pop r26
+ 304 00d0 9F91      		pop r25
+ 305 00d2 8F91      		pop r24
+ 306 00d4 7F91      		pop r23
+ 307 00d6 6F91      		pop r22
+ 308 00d8 5F91      		pop r21
+ 309 00da 4F91      		pop r20
+ 310 00dc 3F91      		pop r19
+ 311 00de 2F91      		pop r18
+ 312 00e0 0F90      		pop r0
+ 313 00e2 0FBE      		out __SREG__,r0
+ 314 00e4 0F90      		pop r0
+ 315 00e6 1F90      		pop r1
+ 316 00e8 1895      		reti
+ 321               	.Lscope4:
+ 323               	.global	waitForSensors
+ 325               	waitForSensors:
+  59:utils/sensing.c ****     }
+  60:utils/sensing.c **** }
+  61:utils/sensing.c **** 
+  62:utils/sensing.c **** void waitForSensors(void) {
+ 327               	.LM27:
+ 328               	.LFBB5:
+ 329               	/* prologue: function */
+ 330               	/* frame size = 0 */
+ 331               	/* stack size = 0 */
+ 332               	.L__stack_usage = 0
+ 333               	.L16:
+  63:utils/sensing.c ****     // Sensors data are coming in if usartActive is true
+  64:utils/sensing.c ****     while(usartActive);
+ 335               	.LM28:
+ 336 00ea 8091 0000 		lds r24,usartActive
+ 337 00ee 8111      		cpse r24,__zero_reg__
+ 338 00f0 00C0      		rjmp .L16
+ 339               	/* epilogue start */
+  65:utils/sensing.c **** }
+ 341               	.LM29:
+ 342 00f2 0895      		ret
+ 344               	.Lscope5:
+ 347               	.global	delayAndUpdateSensors
+ 349               	delayAndUpdateSensors:
+  66:utils/sensing.c **** 
+  67:utils/sensing.c **** void delayAndUpdateSensors(uint32_t time_ms) {
+ 351               	.LM30:
+ 352               	.LFBB6:
+ 353 00f4 0F93      		push r16
+ 354 00f6 1F93      		push r17
+ 355               	/* prologue: function */
+ 356               	/* frame size = 0 */
+ 357               	/* stack size = 2 */
+ 358               	.L__stack_usage = 2
+  68:utils/sensing.c ****     // Update sensors while waiting
+  69:utils/sensing.c ****     delayMsFunc(time_ms, &updateSensors, 1, UPDATE_SENSOR_DELAY_CUTOFF);
+ 360               	.LM31:
+ 361 00f8 0AE0      		ldi r16,lo8(10)
+ 362 00fa 10E0      		ldi r17,0
+ 363 00fc 21E0      		ldi r18,lo8(1)
+ 364 00fe 30E0      		ldi r19,0
+ 365 0100 40E0      		ldi r20,lo8(gs(updateSensors))
+ 366 0102 50E0      		ldi r21,hi8(gs(updateSensors))
+ 367 0104 0E94 0000 		call delayMsFunc
+ 368               	/* epilogue start */
+  70:utils/sensing.c **** }
+ 370               	.LM32:
+ 371 0108 1F91      		pop r17
+ 372 010a 0F91      		pop r16
+ 373 010c 0895      		ret
+ 375               	.Lscope6:
+ 378               	.global	getSensorUint8
+ 380               	getSensorUint8:
+  71:utils/sensing.c **** 
+  72:utils/sensing.c **** uint8_t getSensorUint8(uint8_t index) {
+ 382               	.LM33:
+ 383               	.LFBB7:
+ 384               	/* prologue: function */
+ 385               	/* frame size = 0 */
+ 386               	/* stack size = 0 */
+ 387               	.L__stack_usage = 0
+  73:utils/sensing.c ****     // Already in the right format
+  74:utils/sensing.c ****     return sensors[index];
+ 389               	.LM34:
+ 390 010e E82F      		mov r30,r24
+ 391 0110 F0E0      		ldi r31,0
+ 392 0112 E050      		subi r30,lo8(-(sensors))
+ 393 0114 F040      		sbci r31,hi8(-(sensors))
+ 394 0116 8081      		ld r24,Z
+  75:utils/sensing.c **** }
+ 396               	.LM35:
+ 397 0118 0895      		ret
+ 399               	.Lscope7:
+ 402               	.global	getSensorInt8
+ 404               	getSensorInt8:
+  76:utils/sensing.c **** 
+  77:utils/sensing.c **** int8_t getSensorInt8(uint8_t index) {
+ 406               	.LM36:
+ 407               	.LFBB8:
+ 408               	/* prologue: function */
+ 409               	/* frame size = 0 */
+ 410               	/* stack size = 0 */
+ 411               	.L__stack_usage = 0
+ 412               	.LBB11:
+ 413               	.LBB12:
+  74:utils/sensing.c ****     return sensors[index];
+ 415               	.LM37:
+ 416 011a E82F      		mov r30,r24
+ 417 011c F0E0      		ldi r31,0
+ 418 011e E050      		subi r30,lo8(-(sensors))
+ 419 0120 F040      		sbci r31,hi8(-(sensors))
+ 420 0122 8081      		ld r24,Z
+ 421               	.LBE12:
+ 422               	.LBE11:
+  78:utils/sensing.c ****     uint8_t x = getSensorUint8(index);
+  79:utils/sensing.c ****     // Convert to signed; not implementation-dependent, and optimizes away
+  80:utils/sensing.c ****     return x < (1 << 7) ? x : x - (1 << 8);
+  81:utils/sensing.c **** }
+ 424               	.LM38:
+ 425 0124 0895      		ret
+ 427               	.Lscope8:
+ 430               	.global	getSensorUint16
+ 432               	getSensorUint16:
+  82:utils/sensing.c **** 
+  83:utils/sensing.c **** uint16_t getSensorUint16(uint8_t index1) {
+ 434               	.LM39:
+ 435               	.LFBB9:
+ 436               	/* prologue: function */
+ 437               	/* frame size = 0 */
+ 438               	/* stack size = 0 */
+ 439               	.L__stack_usage = 0
+  84:utils/sensing.c ****     // Combine msB and lsB
+  85:utils/sensing.c ****     return (sensors[index1] << 8) | sensors[index1 + 1];
+ 441               	.LM40:
+ 442 0126 90E0      		ldi r25,0
+ 443 0128 FC01      		movw r30,r24
+ 444 012a E050      		subi r30,lo8(-(sensors))
+ 445 012c F040      		sbci r31,hi8(-(sensors))
+ 446 012e 2081      		ld r18,Z
+ 447 0130 FC01      		movw r30,r24
+ 448 0132 E050      		subi r30,lo8(-(sensors+1))
+ 449 0134 F040      		sbci r31,hi8(-(sensors+1))
+ 450 0136 8081      		ld r24,Z
+ 451 0138 90E0      		ldi r25,0
+  86:utils/sensing.c **** }
+ 453               	.LM41:
+ 454 013a 922B      		or r25,r18
+ 455 013c 0895      		ret
+ 457               	.Lscope9:
+ 460               	.global	getSensorInt16
+ 462               	getSensorInt16:
+  87:utils/sensing.c **** 
+  88:utils/sensing.c **** int16_t getSensorInt16(uint8_t index1) {
+ 464               	.LM42:
+ 465               	.LFBB10:
+ 466               	/* prologue: function */
+ 467               	/* frame size = 0 */
+ 468               	/* stack size = 0 */
+ 469               	.L__stack_usage = 0
+  89:utils/sensing.c ****     uint16_t x = getSensorUint16(index1);
+ 471               	.LM43:
+ 472 013e 0C94 0000 		jmp getSensorUint16
+ 474               	.Lscope10:
+ 475               		.comm	sensors,52,1
+ 476               		.comm	sensorBuffer,52,1
+ 477               	.global	sensorIndex
+ 478               		.section .bss
+ 481               	sensorIndex:
+ 482 0000 00        		.zero	1
+ 483               	.global	usartActive
+ 486               	usartActive:
+ 487 0001 00        		.zero	1
+ 492               		.text
+ 494               	.Letext0:
+ 495               		.ident	"GCC: (GNU) 4.8.2"
+ 496               	.global __do_clear_bss
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 sensing.c
+     /tmp/ccrjUTP8.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccrjUTP8.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccrjUTP8.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccrjUTP8.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccrjUTP8.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccrjUTP8.s:113    .text:0000000000000000 requestPacket
+     /tmp/ccrjUTP8.s:142    .text:0000000000000012 updateSensors
+     /tmp/ccrjUTP8.s:486    .bss:0000000000000001 usartActive
+                            *COM*:0000000000000034 sensorBuffer
+                            *COM*:0000000000000034 sensors
+     /tmp/ccrjUTP8.s:481    .bss:0000000000000000 sensorIndex
+     /tmp/ccrjUTP8.s:197    .text:0000000000000048 read1ByteSensorPacket
+     /tmp/ccrjUTP8.s:216    .text:0000000000000050 __vector_18
+     /tmp/ccrjUTP8.s:325    .text:00000000000000ea waitForSensors
+     /tmp/ccrjUTP8.s:349    .text:00000000000000f4 delayAndUpdateSensors
+     /tmp/ccrjUTP8.s:380    .text:000000000000010e getSensorUint8
+     /tmp/ccrjUTP8.s:404    .text:000000000000011a getSensorInt8
+     /tmp/ccrjUTP8.s:432    .text:0000000000000126 getSensorUint16
+     /tmp/ccrjUTP8.s:462    .text:000000000000013e getSensorInt16
+
+UNDEFINED SYMBOLS
+byteTx
+byteRx
+getSerialDestination
+delayMsFunc
+__do_clear_bss

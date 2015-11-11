@@ -1,0 +1,74 @@
+   1               		.file	"proj2a.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  92               		.section	.text.startup,"ax",@progbits
+  94               	.global	main
+  96               	main:
+   1:proj2a.c      **** #include "iroblife.h"
+   2:proj2a.c      **** #include "sensing.h"
+   3:proj2a.c      **** 
+   4:proj2a.c      **** #include "lib2a.h"
+   5:proj2a.c      **** 
+   6:proj2a.c      **** // Delay constant
+   7:proj2a.c      **** #define IROB_PERIOD_MS  (1000)
+   8:proj2a.c      **** 
+   9:proj2a.c      **** int main(void) {
+  98               	.LM0:
+  99               	.LFBB1:
+ 100               	/* prologue: function */
+ 101               	/* frame size = 0 */
+ 102               	/* stack size = 0 */
+ 103               	.L__stack_usage = 0
+  10:proj2a.c      ****     // Submit to irobPeriodic
+  11:proj2a.c      ****     setIrobPeriodicImpl(&iroblifePeriodic);
+ 105               	.LM1:
+ 106 0000 80E0      		ldi r24,lo8(gs(iroblifePeriodic))
+ 107 0002 90E0      		ldi r25,hi8(gs(iroblifePeriodic))
+ 108 0004 0E94 0000 		call setIrobPeriodicImpl
+  12:proj2a.c      **** 
+  13:proj2a.c      ****     // Initialize the Create
+  14:proj2a.c      ****     irobInit();
+ 110               	.LM2:
+ 111 0008 0E94 0000 		call irobInit
+ 112               	.L2:
+  15:proj2a.c      **** 
+  16:proj2a.c      ****     // Infinite operation loop
+  17:proj2a.c      ****     for(;;) {
+  18:proj2a.c      ****         // Periodic execution
+  19:proj2a.c      ****         irobPeriodic();
+ 114               	.LM3:
+ 115 000c 0E94 0000 		call irobPeriodic
+  20:proj2a.c      ****        
+  21:proj2a.c      ****         // Delay for the loop; one second
+  22:proj2a.c      ****         delayAndUpdateSensors(IROB_PERIOD_MS);
+ 117               	.LM4:
+ 118 0010 68EE      		ldi r22,lo8(-24)
+ 119 0012 73E0      		ldi r23,lo8(3)
+ 120 0014 80E0      		ldi r24,0
+ 121 0016 90E0      		ldi r25,0
+ 122 0018 0E94 0000 		call delayAndUpdateSensors
+ 123 001c 00C0      		rjmp .L2
+ 125               	.Lscope1:
+ 126               		.text
+ 128               	.Letext0:
+ 129               		.ident	"GCC: (GNU) 4.8.2"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 proj2a.c
+     /tmp/cccFdxKU.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cccFdxKU.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cccFdxKU.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cccFdxKU.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cccFdxKU.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cccFdxKU.s:96     .text.startup:0000000000000000 main
+
+UNDEFINED SYMBOLS
+iroblifePeriodic
+setIrobPeriodicImpl
+irobInit
+irobPeriodic
+delayAndUpdateSensors

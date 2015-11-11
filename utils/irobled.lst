@@ -1,0 +1,244 @@
+   1               		.file	"irobled.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+ 104               	.global	irobledUpdate
+ 106               	irobledUpdate:
+   1:utils/irobled.c **** #include <stdint.h>
+   2:utils/irobled.c **** #include "irobled.h"
+   3:utils/irobled.c **** #include "cmod.h"
+   4:utils/irobled.c **** #include "oi.h"
+   5:utils/irobled.c **** 
+   6:utils/irobled.c **** // The current state of the leds.
+   7:utils/irobled.c **** struct {
+   8:utils/irobled.c ****     uint8_t bits;
+   9:utils/irobled.c ****     uint8_t color;
+  10:utils/irobled.c ****     uint8_t intensity;
+  11:utils/irobled.c **** } iroblibState;
+  12:utils/irobled.c **** 
+  13:utils/irobled.c **** void irobledCmd(uint8_t bits, uint8_t color, uint8_t intensity) {
+  14:utils/irobled.c ****     // Modify the state
+  15:utils/irobled.c ****     iroblibState.bits = bits;
+  16:utils/irobled.c ****     iroblibState.color = color;
+  17:utils/irobled.c ****     iroblibState.intensity = intensity;
+  18:utils/irobled.c ****     // Update
+  19:utils/irobled.c ****     irobledUpdate();
+  20:utils/irobled.c **** }
+  21:utils/irobled.c **** 
+  22:utils/irobled.c **** void irobledUpdate(void) {
+ 108               	.LM0:
+ 109               	.LFBB1:
+ 110               	/* prologue: function */
+ 111               	/* frame size = 0 */
+ 112               	/* stack size = 0 */
+ 113               	.L__stack_usage = 0
+  23:utils/irobled.c ****     // Send the led command using the current state
+  24:utils/irobled.c ****     byteTx(CmdLeds);
+ 115               	.LM1:
+ 116 0000 8BE8      		ldi r24,lo8(-117)
+ 117 0002 0E94 0000 		call byteTx
+  25:utils/irobled.c ****     byteTx(iroblibState.bits);
+ 119               	.LM2:
+ 120 0006 8091 0000 		lds r24,iroblibState
+ 121 000a 0E94 0000 		call byteTx
+  26:utils/irobled.c ****     byteTx(iroblibState.color);
+ 123               	.LM3:
+ 124 000e 8091 0000 		lds r24,iroblibState+1
+ 125 0012 0E94 0000 		call byteTx
+  27:utils/irobled.c ****     byteTx(iroblibState.intensity); 
+ 127               	.LM4:
+ 128 0016 8091 0000 		lds r24,iroblibState+2
+ 129 001a 0C94 0000 		jmp byteTx
+ 131               	.Lscope1:
+ 136               	.global	irobledCmd
+ 138               	irobledCmd:
+  13:utils/irobled.c **** void irobledCmd(uint8_t bits, uint8_t color, uint8_t intensity) {
+ 140               	.LM5:
+ 141               	.LFBB2:
+ 142               	/* prologue: function */
+ 143               	/* frame size = 0 */
+ 144               	/* stack size = 0 */
+ 145               	.L__stack_usage = 0
+  15:utils/irobled.c ****     iroblibState.bits = bits;
+ 147               	.LM6:
+ 148 001e 8093 0000 		sts iroblibState,r24
+  16:utils/irobled.c ****     iroblibState.color = color;
+ 150               	.LM7:
+ 151 0022 6093 0000 		sts iroblibState+1,r22
+  17:utils/irobled.c ****     iroblibState.intensity = intensity;
+ 153               	.LM8:
+ 154 0026 4093 0000 		sts iroblibState+2,r20
+  19:utils/irobled.c ****     irobledUpdate();
+ 156               	.LM9:
+ 157 002a 0C94 0000 		jmp irobledUpdate
+ 159               	.Lscope2:
+ 161               	.global	irobledInit
+ 163               	irobledInit:
+  28:utils/irobled.c **** }
+  29:utils/irobled.c **** 
+  30:utils/irobled.c **** void irobledInit(void) {
+ 165               	.LM10:
+ 166               	.LFBB3:
+ 167               	/* prologue: function */
+ 168               	/* frame size = 0 */
+ 169               	/* stack size = 0 */
+ 170               	.L__stack_usage = 0
+ 171               	.LBB6:
+ 172               	.LBB7:
+  15:utils/irobled.c ****     iroblibState.bits = bits;
+ 174               	.LM11:
+ 175 002e 1092 0000 		sts iroblibState,__zero_reg__
+  16:utils/irobled.c ****     iroblibState.color = color;
+ 177               	.LM12:
+ 178 0032 80E4      		ldi r24,lo8(64)
+ 179 0034 8093 0000 		sts iroblibState+1,r24
+  17:utils/irobled.c ****     iroblibState.intensity = intensity;
+ 181               	.LM13:
+ 182 0038 8FEF      		ldi r24,lo8(-1)
+ 183 003a 8093 0000 		sts iroblibState+2,r24
+  19:utils/irobled.c ****     irobledUpdate();
+ 185               	.LM14:
+ 186 003e 0C94 0000 		jmp irobledUpdate
+ 187               	.LBE7:
+ 188               	.LBE6:
+ 190               	.Lscope3:
+ 194               	.global	powerLedSet
+ 196               	powerLedSet:
+  31:utils/irobled.c ****     irobledCmd(NEITHER_ROBOT_LED, POWER_LED_ORANGE, 0xFF);
+  32:utils/irobled.c **** }
+  33:utils/irobled.c **** 
+  34:utils/irobled.c **** void powerLedSet(uint8_t color, uint8_t intensity) {
+ 198               	.LM15:
+ 199               	.LFBB4:
+ 200               	/* prologue: function */
+ 201               	/* frame size = 0 */
+ 202               	/* stack size = 0 */
+ 203               	.L__stack_usage = 0
+ 204               	.LBB8:
+ 205               	.LBB9:
+  16:utils/irobled.c ****     iroblibState.color = color;
+ 207               	.LM16:
+ 208 0042 8093 0000 		sts iroblibState+1,r24
+  17:utils/irobled.c ****     iroblibState.intensity = intensity;
+ 210               	.LM17:
+ 211 0046 6093 0000 		sts iroblibState+2,r22
+  19:utils/irobled.c ****     irobledUpdate();
+ 213               	.LM18:
+ 214 004a 0C94 0000 		jmp irobledUpdate
+ 215               	.LBE9:
+ 216               	.LBE8:
+ 218               	.Lscope4:
+ 221               	.global	robotLedSetBits
+ 223               	robotLedSetBits:
+  35:utils/irobled.c ****     irobledCmd(iroblibState.bits, color, intensity);
+  36:utils/irobled.c **** }
+  37:utils/irobled.c **** 
+  38:utils/irobled.c **** void robotLedSetBits(uint8_t bits) {
+ 225               	.LM19:
+ 226               	.LFBB5:
+ 227               	/* prologue: function */
+ 228               	/* frame size = 0 */
+ 229               	/* stack size = 0 */
+ 230               	.L__stack_usage = 0
+  39:utils/irobled.c ****     iroblibState.bits = bits;
+ 232               	.LM20:
+ 233 004e 8093 0000 		sts iroblibState,r24
+  40:utils/irobled.c ****     irobledUpdate();
+ 235               	.LM21:
+ 236 0052 0C94 0000 		jmp irobledUpdate
+ 238               	.Lscope5:
+ 241               	.global	robotLedOn
+ 243               	robotLedOn:
+  41:utils/irobled.c **** }
+  42:utils/irobled.c **** 
+  43:utils/irobled.c **** void robotLedOn(uint8_t led) {
+ 245               	.LM22:
+ 246               	.LFBB6:
+ 247               	/* prologue: function */
+ 248               	/* frame size = 0 */
+ 249               	/* stack size = 0 */
+ 250               	.L__stack_usage = 0
+  44:utils/irobled.c ****     iroblibState.bits |= led;
+ 252               	.LM23:
+ 253 0056 E0E0      		ldi r30,lo8(iroblibState)
+ 254 0058 F0E0      		ldi r31,hi8(iroblibState)
+ 255 005a 9081      		ld r25,Z
+ 256 005c 982B      		or r25,r24
+ 257 005e 9083      		st Z,r25
+  45:utils/irobled.c ****     irobledUpdate();
+ 259               	.LM24:
+ 260 0060 0C94 0000 		jmp irobledUpdate
+ 262               	.Lscope6:
+ 265               	.global	robotLedOff
+ 267               	robotLedOff:
+  46:utils/irobled.c **** }
+  47:utils/irobled.c **** 
+  48:utils/irobled.c **** void robotLedOff(uint8_t led) {
+ 269               	.LM25:
+ 270               	.LFBB7:
+ 271               	/* prologue: function */
+ 272               	/* frame size = 0 */
+ 273               	/* stack size = 0 */
+ 274               	.L__stack_usage = 0
+  49:utils/irobled.c ****     iroblibState.bits &= ~led;
+ 276               	.LM26:
+ 277 0064 E0E0      		ldi r30,lo8(iroblibState)
+ 278 0066 F0E0      		ldi r31,hi8(iroblibState)
+ 279 0068 8095      		com r24
+ 280 006a 9081      		ld r25,Z
+ 281 006c 8923      		and r24,r25
+ 282 006e 8083      		st Z,r24
+  50:utils/irobled.c ****     irobledUpdate();
+ 284               	.LM27:
+ 285 0070 0C94 0000 		jmp irobledUpdate
+ 287               	.Lscope7:
+ 290               	.global	robotLedToggle
+ 292               	robotLedToggle:
+  51:utils/irobled.c **** }
+  52:utils/irobled.c **** 
+  53:utils/irobled.c **** void robotLedToggle(uint8_t led) {
+ 294               	.LM28:
+ 295               	.LFBB8:
+ 296               	/* prologue: function */
+ 297               	/* frame size = 0 */
+ 298               	/* stack size = 0 */
+ 299               	.L__stack_usage = 0
+  54:utils/irobled.c ****     iroblibState.bits ^= led;
+ 301               	.LM29:
+ 302 0074 E0E0      		ldi r30,lo8(iroblibState)
+ 303 0076 F0E0      		ldi r31,hi8(iroblibState)
+ 304 0078 9081      		ld r25,Z
+ 305 007a 9827      		eor r25,r24
+ 306 007c 9083      		st Z,r25
+  55:utils/irobled.c ****     irobledUpdate();
+ 308               	.LM30:
+ 309 007e 0C94 0000 		jmp irobledUpdate
+ 311               	.Lscope8:
+ 312               		.comm	iroblibState,3,1
+ 315               	.Letext0:
+ 316               		.ident	"GCC: (GNU) 4.8.2"
+ 317               	.global __do_clear_bss
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 irobled.c
+     /tmp/ccQMTbv1.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccQMTbv1.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccQMTbv1.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccQMTbv1.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccQMTbv1.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccQMTbv1.s:106    .text:0000000000000000 irobledUpdate
+                            *COM*:0000000000000003 iroblibState
+     /tmp/ccQMTbv1.s:138    .text:000000000000001e irobledCmd
+     /tmp/ccQMTbv1.s:163    .text:000000000000002e irobledInit
+     /tmp/ccQMTbv1.s:196    .text:0000000000000042 powerLedSet
+     /tmp/ccQMTbv1.s:223    .text:000000000000004e robotLedSetBits
+     /tmp/ccQMTbv1.s:243    .text:0000000000000056 robotLedOn
+     /tmp/ccQMTbv1.s:267    .text:0000000000000064 robotLedOff
+     /tmp/ccQMTbv1.s:292    .text:0000000000000074 robotLedToggle
+
+UNDEFINED SYMBOLS
+byteTx
+__do_clear_bss

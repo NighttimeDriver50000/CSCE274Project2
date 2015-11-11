@@ -56,11 +56,11 @@ FORMAT = ihex
 
 
 # Target file name (without extension).
-TARGET = proj2a
+TARGET = proj2b
 
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = lib2a.c proj2a.c utils/irobserial.c utils/driving.c utils/iroblib.c utils/irobled.c utils/timer.c utils/cmod.c utils/sensing.c utils/iroblife.c
+SRC = lib2b.c proj2b.c utils/irobserial.c utils/driving.c utils/iroblib.c utils/irobled.c utils/timer.c utils/cmod.c utils/sensing.c utils/iroblife.c
 
 
 # List Assembler source files here.

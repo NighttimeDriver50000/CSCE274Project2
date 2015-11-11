@@ -1,0 +1,380 @@
+   1               		.file	"lib2b.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  93               	.global	cannotRotateOrAdvance
+  95               	cannotRotateOrAdvance:
+   1:lib2b.c       **** #include "lib2b.h"
+   2:lib2b.c       **** #include "sensing.h"
+   3:lib2b.c       **** #include "oi.h"
+   4:lib2b.c       **** #include "driving.h"
+   5:lib2b.c       **** 
+   6:lib2b.c       **** //! Previous IR sensor value
+   7:lib2b.c       **** uint8_t irPrevious = 0;
+   8:lib2b.c       **** 
+   9:lib2b.c       **** //! True iff the robot should not move at all
+  10:lib2b.c       **** uint8_t cannotRotateOrAdvance(void) {
+  97               	.LM0:
+  98               	.LFBB1:
+  99               	/* prologue: function */
+ 100               	/* frame size = 0 */
+ 101               	/* stack size = 0 */
+ 102               	.L__stack_usage = 0
+  11:lib2b.c       ****     return getSensorUint8(SenBumpDrop) & MASK_WHEEL_DROP;
+ 104               	.LM1:
+ 105 0000 80E0      		ldi r24,0
+ 106 0002 0E94 0000 		call getSensorUint8
+  12:lib2b.c       **** }
+ 108               	.LM2:
+ 109 0006 8C71      		andi r24,lo8(28)
+ 110 0008 0895      		ret
+ 112               	.Lscope1:
+ 114               	.global	doWhileTurning
+ 116               	doWhileTurning:
+  13:lib2b.c       **** 
+  14:lib2b.c       **** //! True iff the robot should not drive forward
+  15:lib2b.c       **** uint8_t cannotAdvance(void) {
+  16:lib2b.c       ****     return getSensorUint8(SenBumpDrop) || !(getSensorUint16(SenCliffLSig1) &&
+  17:lib2b.c       ****             getSensorUint16(SenCliffFLSig1) && getSensorUint16(SenCliffFRSig1)
+  18:lib2b.c       ****             && getSensorUint16(SenCliffRSig1));
+  19:lib2b.c       **** }
+  20:lib2b.c       **** 
+  21:lib2b.c       **** //! Begin or continue driving forward if it is allowed, otherwise stop
+  22:lib2b.c       **** void driveForwardIfAllowable(void) {
+  23:lib2b.c       ****     if (cannotAdvance()) {
+  24:lib2b.c       ****         // Shouldn't be moving forward: just stop
+  25:lib2b.c       ****         driveStop();
+  26:lib2b.c       ****     } else {
+  27:lib2b.c       ****         // Forward being pressed and able to move forward: drive!
+  28:lib2b.c       ****         drive(SPEED, RadStraight);
+  29:lib2b.c       ****     }
+  30:lib2b.c       **** }
+  31:lib2b.c       **** 
+  32:lib2b.c       **** //! Begin or continue turning
+  33:lib2b.c       **** void turnContinuous(int16_t radius) {
+  34:lib2b.c       ****     drive(SPEED, radius);
+  35:lib2b.c       **** }
+  36:lib2b.c       **** 
+  37:lib2b.c       **** //! Called by overTurn periodically while turning.
+  38:lib2b.c       **** //! Updates sensors and stops if unsafe to continue.
+  39:lib2b.c       **** void doWhileTurning(void) {
+ 118               	.LM3:
+ 119               	.LFBB2:
+ 120               	/* prologue: function */
+ 121               	/* frame size = 0 */
+ 122               	/* stack size = 0 */
+ 123               	.L__stack_usage = 0
+  40:lib2b.c       ****     // Get most recent sensor values
+  41:lib2b.c       ****     updateSensors();
+ 125               	.LM4:
+ 126 000a 0E94 0000 		call updateSensors
+  42:lib2b.c       ****     if (cannotRotateOrAdvance()) {
+ 128               	.LM5:
+ 129 000e 0E94 0000 		call cannotRotateOrAdvance
+ 130 0012 8111      		cpse r24,__zero_reg__
+  43:lib2b.c       ****         // Shouldn't be moving: just stop
+  44:lib2b.c       ****         driveStop();
+ 132               	.LM6:
+ 133 0014 0C94 0000 		jmp driveStop
+ 134               	.L2:
+ 135 0018 0895      		ret
+ 137               	.Lscope2:
+ 139               	.global	cannotAdvance
+ 141               	cannotAdvance:
+  15:lib2b.c       **** uint8_t cannotAdvance(void) {
+ 143               	.LM7:
+ 144               	.LFBB3:
+ 145               	/* prologue: function */
+ 146               	/* frame size = 0 */
+ 147               	/* stack size = 0 */
+ 148               	.L__stack_usage = 0
+  16:lib2b.c       ****     return getSensorUint8(SenBumpDrop) || !(getSensorUint16(SenCliffLSig1) &&
+ 150               	.LM8:
+ 151 001a 80E0      		ldi r24,0
+ 152 001c 0E94 0000 		call getSensorUint8
+ 153 0020 8823      		tst r24
+ 154 0022 01F0      		breq .L6
+ 155               	.L8:
+ 156 0024 81E0      		ldi r24,lo8(1)
+ 157 0026 0895      		ret
+ 158               	.L6:
+  16:lib2b.c       ****     return getSensorUint8(SenBumpDrop) || !(getSensorUint16(SenCliffLSig1) &&
+ 160               	.LM9:
+ 161 0028 8CE1      		ldi r24,lo8(28)
+ 162 002a 0E94 0000 		call getSensorUint16
+ 163 002e 892B      		or r24,r25
+ 164 0030 01F0      		breq .L8
+  17:lib2b.c       ****             getSensorUint16(SenCliffFLSig1) && getSensorUint16(SenCliffFRSig1)
+ 166               	.LM10:
+ 167 0032 8EE1      		ldi r24,lo8(30)
+ 168 0034 0E94 0000 		call getSensorUint16
+  16:lib2b.c       ****     return getSensorUint8(SenBumpDrop) || !(getSensorUint16(SenCliffLSig1) &&
+ 170               	.LM11:
+ 171 0038 892B      		or r24,r25
+ 172 003a 01F0      		breq .L8
+  17:lib2b.c       ****             getSensorUint16(SenCliffFLSig1) && getSensorUint16(SenCliffFRSig1)
+ 174               	.LM12:
+ 175 003c 80E2      		ldi r24,lo8(32)
+ 176 003e 0E94 0000 		call getSensorUint16
+ 177 0042 892B      		or r24,r25
+ 178 0044 01F0      		breq .L8
+  18:lib2b.c       ****             && getSensorUint16(SenCliffRSig1));
+ 180               	.LM13:
+ 181 0046 82E2      		ldi r24,lo8(34)
+ 182 0048 0E94 0000 		call getSensorUint16
+  16:lib2b.c       ****     return getSensorUint8(SenBumpDrop) || !(getSensorUint16(SenCliffLSig1) &&
+ 184               	.LM14:
+ 185 004c 21E0      		ldi r18,lo8(1)
+ 186 004e 892B      		or r24,r25
+ 187 0050 01F0      		breq .L9
+ 188 0052 20E0      		ldi r18,0
+ 189               	.L9:
+ 190 0054 822F      		mov r24,r18
+  19:lib2b.c       **** }
+ 192               	.LM15:
+ 193 0056 0895      		ret
+ 195               	.Lscope3:
+ 197               	.global	driveForwardIfAllowable
+ 199               	driveForwardIfAllowable:
+  22:lib2b.c       **** void driveForwardIfAllowable(void) {
+ 201               	.LM16:
+ 202               	.LFBB4:
+ 203               	/* prologue: function */
+ 204               	/* frame size = 0 */
+ 205               	/* stack size = 0 */
+ 206               	.L__stack_usage = 0
+  23:lib2b.c       ****     if (cannotAdvance()) {
+ 208               	.LM17:
+ 209 0058 0E94 0000 		call cannotAdvance
+ 210 005c 8111      		cpse r24,__zero_reg__
+  25:lib2b.c       ****         driveStop();
+ 212               	.LM18:
+ 213 005e 0C94 0000 		jmp driveStop
+ 214               	.L23:
+  28:lib2b.c       ****         drive(SPEED, RadStraight);
+ 216               	.LM19:
+ 217 0062 60E0      		ldi r22,0
+ 218 0064 70E8      		ldi r23,lo8(-128)
+ 219 0066 84EF      		ldi r24,lo8(-12)
+ 220 0068 91E0      		ldi r25,lo8(1)
+ 221 006a 0C94 0000 		jmp drive
+ 223               	.Lscope4:
+ 226               	.global	turnContinuous
+ 228               	turnContinuous:
+  33:lib2b.c       **** void turnContinuous(int16_t radius) {
+ 230               	.LM20:
+ 231               	.LFBB5:
+ 232               	/* prologue: function */
+ 233               	/* frame size = 0 */
+ 234               	/* stack size = 0 */
+ 235               	.L__stack_usage = 0
+  34:lib2b.c       ****     drive(SPEED, radius);
+ 237               	.LM21:
+ 238 006e BC01      		movw r22,r24
+ 239 0070 84EF      		ldi r24,lo8(-12)
+ 240 0072 91E0      		ldi r25,lo8(1)
+ 241 0074 0C94 0000 		jmp drive
+ 243               	.Lscope5:
+ 246               	.global	overTurn
+ 248               	overTurn:
+  45:lib2b.c       ****     }
+  46:lib2b.c       ****     // Keep going
+  47:lib2b.c       **** }
+  48:lib2b.c       **** 
+  49:lib2b.c       **** //! Turn an extra 30 degrees. Does not return until fully turned.
+  50:lib2b.c       **** //! Calls doWhileTurning periodically for sensor updating and safety.
+  51:lib2b.c       **** void overTurn(int16_t radius) {
+ 250               	.LM22:
+ 251               	.LFBB6:
+ 252 0078 EF92      		push r14
+ 253 007a FF92      		push r15
+ 254 007c 0F93      		push r16
+ 255 007e 1F93      		push r17
+ 256               	/* prologue: function */
+ 257               	/* frame size = 0 */
+ 258               	/* stack size = 4 */
+ 259               	.L__stack_usage = 4
+  52:lib2b.c       ****     driveAngleTFunc(SPEED, radius, OVER_TURN_ANGLE,
+ 261               	.LM23:
+ 262 0080 2AE0      		ldi r18,lo8(10)
+ 263 0082 E22E      		mov r14,r18
+ 264 0084 F12C      		mov r15,__zero_reg__
+ 265 0086 01E0      		ldi r16,lo8(1)
+ 266 0088 10E0      		ldi r17,0
+ 267 008a 20E0      		ldi r18,lo8(gs(doWhileTurning))
+ 268 008c 30E0      		ldi r19,hi8(gs(doWhileTurning))
+ 269 008e 4EE1      		ldi r20,lo8(30)
+ 270 0090 50E0      		ldi r21,0
+ 271 0092 BC01      		movw r22,r24
+ 272 0094 84EF      		ldi r24,lo8(-12)
+ 273 0096 91E0      		ldi r25,lo8(1)
+ 274 0098 0E94 0000 		call driveAngleTFunc
+ 275               	/* epilogue start */
+  53:lib2b.c       ****             &doWhileTurning, UPDATE_SENSOR_DELAY_PERIOD,
+  54:lib2b.c       ****             UPDATE_SENSOR_DELAY_CUTOFF);
+  55:lib2b.c       **** }
+ 277               	.LM24:
+ 278 009c 1F91      		pop r17
+ 279 009e 0F91      		pop r16
+ 280 00a0 FF90      		pop r15
+ 281 00a2 EF90      		pop r14
+ 282 00a4 0895      		ret
+ 284               	.Lscope6:
+ 286               	.global	iroblifePeriodic
+ 288               	iroblifePeriodic:
+  56:lib2b.c       **** 
+  57:lib2b.c       **** //! Called by irobPeriodic
+  58:lib2b.c       **** void iroblifePeriodic(void) {
+ 290               	.LM25:
+ 291               	.LFBB7:
+ 292 00a6 CF93      		push r28
+ 293               	/* prologue: function */
+ 294               	/* frame size = 0 */
+ 295               	/* stack size = 1 */
+ 296               	.L__stack_usage = 1
+  59:lib2b.c       ****     // Get most recent sensor values
+  60:lib2b.c       ****     updateSensors();
+ 298               	.LM26:
+ 299 00a8 0E94 0000 		call updateSensors
+  61:lib2b.c       ****     // Get IR sensor value
+  62:lib2b.c       ****     uint8_t ir = getSensorUint8(SenIRChar);
+ 301               	.LM27:
+ 302 00ac 8AE0      		ldi r24,lo8(10)
+ 303 00ae 0E94 0000 		call getSensorUint8
+ 304 00b2 C82F      		mov r28,r24
+  63:lib2b.c       ****     if (cannotRotateOrAdvance()) {
+ 306               	.LM28:
+ 307 00b4 0E94 0000 		call cannotRotateOrAdvance
+ 308 00b8 8111      		cpse r24,__zero_reg__
+ 309 00ba 00C0      		rjmp .L37
+  64:lib2b.c       ****         // Shouldn't be moving: just stop
+  65:lib2b.c       ****         driveStop();
+  66:lib2b.c       ****     } else {
+  67:lib2b.c       ****         switch (ir) {
+ 311               	.LM29:
+ 312 00bc C238      		cpi r28,lo8(-126)
+ 313 00be 01F0      		breq .L30
+ 314 00c0 C338      		cpi r28,lo8(-125)
+ 315 00c2 01F0      		breq .L31
+ 316 00c4 C138      		cpi r28,lo8(-127)
+ 317 00c6 01F4      		brne .L36
+  68:lib2b.c       ****             case IR_FORWARD:
+  69:lib2b.c       ****                 // Drive forward if allowable
+  70:lib2b.c       ****                 driveForwardIfAllowable();
+  71:lib2b.c       ****                 break;
+  72:lib2b.c       ****             case IR_LEFT:
+  73:lib2b.c       ****                 // Turn left 
+  74:lib2b.c       ****                 turnContinuous(RadCCW);
+ 319               	.LM30:
+ 320 00c8 81E0      		ldi r24,lo8(1)
+ 321 00ca 90E0      		ldi r25,0
+ 322 00cc 00C0      		rjmp .L38
+ 323               	.L30:
+  70:lib2b.c       ****                 driveForwardIfAllowable();
+ 325               	.LM31:
+ 326 00ce 0E94 0000 		call driveForwardIfAllowable
+  71:lib2b.c       ****                 break;
+ 328               	.LM32:
+ 329 00d2 00C0      		rjmp .L28
+ 330               	.L31:
+  75:lib2b.c       ****                 break;
+  76:lib2b.c       ****             case IR_RIGHT:
+  77:lib2b.c       ****                 // Turn right
+  78:lib2b.c       ****                 turnContinuous(RadCW);
+ 332               	.LM33:
+ 333 00d4 8FEF      		ldi r24,lo8(-1)
+ 334 00d6 9FEF      		ldi r25,lo8(-1)
+ 335               	.L38:
+ 336 00d8 0E94 0000 		call turnContinuous
+  79:lib2b.c       ****                 break;
+ 338               	.LM34:
+ 339 00dc 00C0      		rjmp .L28
+ 340               	.L36:
+  80:lib2b.c       ****             default:
+  81:lib2b.c       ****                 // Movement button isn't being pressed
+  82:lib2b.c       ****                 switch (irPrevious) {
+ 342               	.LM35:
+ 343 00de 8091 0000 		lds r24,irPrevious
+ 344 00e2 8138      		cpi r24,lo8(-127)
+ 345 00e4 01F0      		breq .L34
+ 346 00e6 8338      		cpi r24,lo8(-125)
+ 347 00e8 01F4      		brne .L37
+  83:lib2b.c       ****                     case IR_LEFT:
+  84:lib2b.c       ****                         // Turn an extra 30 degrees
+  85:lib2b.c       ****                         overTurn(RadCCW);
+  86:lib2b.c       ****                         break;
+  87:lib2b.c       ****                     case IR_RIGHT:
+  88:lib2b.c       ****                         // Turn an extra 30 degrees
+  89:lib2b.c       ****                         overTurn(RadCW);
+ 349               	.LM36:
+ 350 00ea 8FEF      		ldi r24,lo8(-1)
+ 351 00ec 9FEF      		ldi r25,lo8(-1)
+ 352 00ee 00C0      		rjmp .L39
+ 353               	.L34:
+  85:lib2b.c       ****                         overTurn(RadCCW);
+ 355               	.LM37:
+ 356 00f0 81E0      		ldi r24,lo8(1)
+ 357 00f2 90E0      		ldi r25,0
+ 358               	.L39:
+ 360               	.LM38:
+ 361 00f4 0E94 0000 		call overTurn
+  90:lib2b.c       ****                         break;
+ 363               	.LM39:
+ 364 00f8 00C0      		rjmp .L28
+ 365               	.L37:
+  91:lib2b.c       ****                     default:
+  92:lib2b.c       ****                         // No buttons pressed and no over-turning left: stop
+  93:lib2b.c       ****                         driveStop();
+ 367               	.LM40:
+ 368 00fa 0E94 0000 		call driveStop
+ 369               	.L28:
+  94:lib2b.c       ****                 }
+  95:lib2b.c       ****                 break;
+  96:lib2b.c       ****         }
+  97:lib2b.c       ****     }
+  98:lib2b.c       ****     // Bookkeeping
+  99:lib2b.c       ****     irPrevious = ir;
+ 371               	.LM41:
+ 372 00fe C093 0000 		sts irPrevious,r28
+ 373               	/* epilogue start */
+ 100:lib2b.c       **** }
+ 375               	.LM42:
+ 376 0102 CF91      		pop r28
+ 377 0104 0895      		ret
+ 382               	.Lscope7:
+ 383               	.global	irPrevious
+ 384               		.section .bss
+ 387               	irPrevious:
+ 388 0000 00        		.zero	1
+ 390               		.text
+ 392               	.Letext0:
+ 393               		.ident	"GCC: (GNU) 4.8.2"
+ 394               	.global __do_clear_bss
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lib2b.c
+     /tmp/cc4y0huB.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/cc4y0huB.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/cc4y0huB.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/cc4y0huB.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/cc4y0huB.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/cc4y0huB.s:95     .text:0000000000000000 cannotRotateOrAdvance
+     /tmp/cc4y0huB.s:116    .text:000000000000000a doWhileTurning
+     /tmp/cc4y0huB.s:141    .text:000000000000001a cannotAdvance
+     /tmp/cc4y0huB.s:199    .text:0000000000000058 driveForwardIfAllowable
+     /tmp/cc4y0huB.s:228    .text:000000000000006e turnContinuous
+     /tmp/cc4y0huB.s:248    .text:0000000000000078 overTurn
+     /tmp/cc4y0huB.s:288    .text:00000000000000a6 iroblifePeriodic
+     /tmp/cc4y0huB.s:387    .bss:0000000000000000 irPrevious
+
+UNDEFINED SYMBOLS
+getSensorUint8
+updateSensors
+driveStop
+getSensorUint16
+drive
+driveAngleTFunc
+__do_clear_bss
